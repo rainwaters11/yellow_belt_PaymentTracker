@@ -1,6 +1,13 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import HeartLock from './HeartLock';
 import './CoupleSync.css';
+import { StellarWalletsKit } from '@creit.tech/stellar-wallets-kit';
+// @ts-ignore — resolved via Vite aliases in astro.config.mjs
+import { FreighterModule } from 'swk/freighter';
+// @ts-ignore
+import { xBullModule } from 'swk/xbull';
+// @ts-ignore
+import { AlbedoModule } from 'swk/albedo';
 
 // ─── Contract config ────────────────────────────────────────────
 const CONTRACT_ID = 'PLACEHOLDER_CONTRACT_ID'; // Replace after deploy
@@ -24,47 +31,61 @@ export default function CoupleSync() {
   const [showWalletModal, setShowWalletModal] = useState(false);
   const [txHash, setTxHash] = useState<string>('');
   const [partnerSynced, setPartnerSynced] = useState(false);
+  const kitReady = useRef(false);
 
-  // ─── Wallet Connection ──────────────────────────────────────
-  const connectWallet = useCallback(async (walletType: string) => {
+  // ─── Initialize StellarWalletsKit ──────────────────────────
+  useEffect(() => {
+    if (!kitReady.current) {
+      StellarWalletsKit.init({
+        modules: [
+          new FreighterModule(),
+          new xBullModule(),
+          new AlbedoModule(),
+        ],
+        network: NETWORK_PASSPHRASE as any,
+      });
+      kitReady.current = true;
+    }
+  }, []);
+
+  // ─── Wallet Connection via StellarWalletsKit ────────────────
+  const connectWallet = useCallback(async (walletId: string) => {
     setErrorType(null);
     setErrorMessage('');
     setWalletStatus('connecting');
     setShowWalletModal(false);
 
     try {
-      // Check if any wallet extension exists
-      if (walletType === 'freighter') {
-        if (typeof window === 'undefined' || !(window as any).freighter) {
-          setErrorType('wallet_not_found');
-          setErrorMessage('Freighter wallet extension not detected. Please install it to continue.');
-          setWalletStatus('disconnected');
-          return;
-        }
-        try {
-          const result = await (window as any).freighter.requestAccess();
-          const address = await (window as any).freighter.getPublicKey();
-          setPublicKey(address);
-          setWalletStatus('connected');
-        } catch (e: any) {
-          if (e?.message?.includes('User declined') || e?.message?.includes('rejected')) {
-            setErrorType('user_rejected');
-            setErrorMessage('Transaction cancelled. You closed the wallet popup.');
-          } else {
-            setErrorType('generic');
-            setErrorMessage(e?.message || 'Could not connect to Freighter.');
-          }
-          setWalletStatus('disconnected');
-        }
-      } else {
-        // Simulated wallet connections for xBull, Albedo
-        setErrorType('wallet_not_found');
-        setErrorMessage(`${walletType} wallet is not installed. Please install it or try Freighter.`);
-        setWalletStatus('disconnected');
-      }
+      // Set the active wallet module in the kit
+      StellarWalletsKit.setWallet(walletId);
+
+      // Request the address — triggers the wallet extension popup
+      const { address } = await StellarWalletsKit.getAddress();
+      setPublicKey(address);
+      setWalletStatus('connected');
     } catch (e: any) {
-      setErrorType('generic');
-      setErrorMessage(e?.message || 'An unexpected error occurred.');
+      const msg = (e?.message || e?.toString() || '').toLowerCase();
+
+      if (
+        msg.includes('not connected') ||
+        msg.includes('not installed') ||
+        msg.includes('not available') ||
+        msg.includes('is not and existing module')
+      ) {
+        setErrorType('wallet_not_found');
+        setErrorMessage(`${walletId} wallet extension not detected. Please install it to continue.`);
+      } else if (
+        msg.includes('user declined') ||
+        msg.includes('rejected') ||
+        msg.includes('cancel') ||
+        msg.includes('denied')
+      ) {
+        setErrorType('user_rejected');
+        setErrorMessage('Transaction cancelled. You closed the wallet popup.');
+      } else {
+        setErrorType('wallet_not_found');
+        setErrorMessage(`Could not connect to ${walletId}. Make sure the extension is installed and unlocked.`);
+      }
       setWalletStatus('disconnected');
     }
   }, []);
