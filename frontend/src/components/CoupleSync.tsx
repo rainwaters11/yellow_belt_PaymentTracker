@@ -45,7 +45,39 @@ export default function CoupleSync() {
         network: NETWORK_PASSPHRASE as any,
       });
       kitReady.current = true;
+
+      // ── Diagnostic: log browser wallet globals ──
+      console.log('[CoupleSync] Wallet diagnostics:', {
+        'window.freighter': typeof (window as any).freighter,
+        'window.freighterApi': typeof (window as any).freighterApi,
+        'window.stellar': typeof (window as any).stellar,
+        'window.xBullSDK': typeof (window as any).xBullSDK,
+      });
     }
+  }, []);
+
+  // ─── Direct Freighter fallback (bypasses CJS import issue) ──
+  const connectFreighterDirect = useCallback(async (): Promise<string | null> => {
+    // Modern Freighter exposes window.freighterApi
+    const api = (window as any).freighterApi;
+    if (api) {
+      console.log('[CoupleSync] Using window.freighterApi directly');
+      const result = await api.requestAccess();
+      if (result?.error) throw new Error(result.error);
+      const addr = await api.getAddress();
+      if (addr?.error) throw new Error(addr.error);
+      return addr?.address || null;
+    }
+
+    // Legacy Freighter exposes window.freighter
+    const legacy = (window as any).freighter;
+    if (legacy) {
+      console.log('[CoupleSync] Using window.freighter (legacy) directly');
+      await legacy.requestAccess();
+      return await legacy.getPublicKey();
+    }
+
+    return null;
   }, []);
 
   // ─── Wallet Connection via StellarWalletsKit ────────────────
@@ -55,17 +87,45 @@ export default function CoupleSync() {
     setWalletStatus('connecting');
     setShowWalletModal(false);
 
+    console.log(`[CoupleSync] Connecting wallet: ${walletId}`);
+
     try {
       // Set the active wallet module in the kit
       StellarWalletsKit.setWallet(walletId);
 
       // Request the address — triggers the wallet extension popup
       const { address } = await StellarWalletsKit.getAddress();
+      console.log(`[CoupleSync] StellarWalletsKit connected: ${address}`);
       setPublicKey(address);
       setWalletStatus('connected');
     } catch (e: any) {
-      const msg = (e?.message || e?.toString() || '').toLowerCase();
+      console.warn('[CoupleSync] StellarWalletsKit error:', e?.message || e);
 
+      // ── Freighter fallback: try direct browser API ──
+      if (walletId === 'freighter') {
+        try {
+          console.log('[CoupleSync] Trying direct Freighter fallback...');
+          const address = await connectFreighterDirect();
+          if (address) {
+            console.log(`[CoupleSync] Direct Freighter connected: ${address}`);
+            setPublicKey(address);
+            setWalletStatus('connected');
+            return;
+          }
+        } catch (fallbackErr: any) {
+          console.warn('[CoupleSync] Direct fallback also failed:', fallbackErr?.message);
+          const fbMsg = (fallbackErr?.message || '').toLowerCase();
+          if (fbMsg.includes('declined') || fbMsg.includes('rejected') || fbMsg.includes('cancel') || fbMsg.includes('denied')) {
+            setErrorType('user_rejected');
+            setErrorMessage('Transaction cancelled. You closed the wallet popup.');
+            setWalletStatus('disconnected');
+            return;
+          }
+        }
+      }
+
+      // ── Classify the original error ──
+      const msg = (e?.message || e?.toString() || '').toLowerCase();
       if (
         msg.includes('not connected') ||
         msg.includes('not installed') ||
@@ -88,7 +148,7 @@ export default function CoupleSync() {
       }
       setWalletStatus('disconnected');
     }
-  }, []);
+  }, [connectFreighterDirect]);
 
   // ─── Demo mode (for environments without wallet extensions) ─
   const connectDemo = useCallback(() => {

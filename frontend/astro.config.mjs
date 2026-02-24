@@ -18,8 +18,11 @@ export default defineConfig({
         'swk/albedo': path.join(swkBase, 'albedo.module.js'),
       },
     },
+    optimizeDeps: {
+      // Pre-bundle the CJS @stellar/freighter-api so named ESM imports work
+      include: ['@stellar/freighter-api'],
+    },
     ssr: {
-      // These packages use browser APIs / CommonJS that should not be SSR'd
       noExternal: ['@creit.tech/stellar-wallets-kit'],
       external: ['@stellar/freighter-api'],
     },
