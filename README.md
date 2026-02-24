@@ -3,6 +3,8 @@
 > Link your Stellar wallets together on the blockchain.  
 > A **Soroban** smart contract dApp for the Stellar Yellow Belt — Level 2.
 
+![Sync Successful](screenshots/sync-successful.png)
+
 ---
 
 ## Features
