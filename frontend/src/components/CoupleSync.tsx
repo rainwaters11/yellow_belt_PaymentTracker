@@ -12,9 +12,10 @@ import { AlbedoModule } from 'swk/albedo';
 // Import freighter-api as default (CJS module — named ESM imports break in Vite)
 // @ts-ignore
 import freighterApi from '@stellar/freighter-api';
+import * as StellarSdk from '@stellar/stellar-sdk';
 
 // ─── Contract config ────────────────────────────────────────────
-const CONTRACT_ID = 'PLACEHOLDER_CONTRACT_ID'; // Replace after deploy
+const CONTRACT_ID = 'CDIZH37S3ZQ6KZOA6YVYMIR5PMZ5BXMZBG6VP3GKXZQOI6JM5BCYWVRP';
 const NETWORK = 'FUTURENET';
 const HORIZON_URL = 'https://horizon-futurenet.stellar.org';
 const SOROBAN_URL = 'https://soroban-futurenet.stellar.org';
@@ -87,7 +88,7 @@ export default function CoupleSync() {
 
         if (connResult?.error || !connResult?.isConnected) {
           setErrorType('wallet_not_found');
-          setErrorMessage('Freighter wallet extension not detected. Please install it to continue.');
+          setErrorMessage('No wallet detected. Please install Freighter to continue.');
           setWalletStatus('disconnected');
           return;
         }
@@ -186,40 +187,117 @@ export default function CoupleSync() {
     setSyncStatus('linking');
 
     try {
-      // Simulate balance check for insufficient funds error
-      if (walletStatus === 'connected' && publicKey) {
+      // 1. Simulate balance check for insufficient funds error
+      if (walletStatus === 'connected' && publicKey && !publicKey.startsWith('GDEMO')) {
         try {
           const response = await fetch(`${HORIZON_URL}/accounts/${publicKey}`);
-          if (response.ok) {
-            const account = await response.json();
-            const xlmBalance = account.balances?.find((b: any) => b.asset_type === 'native');
-            if (xlmBalance && parseFloat(xlmBalance.balance) < 1) {
+          if (!response.ok) {
+            if (response.status === 404) {
               setErrorType('insufficient_funds');
-              setErrorMessage('Insufficient XLM balance. You need at least 1 XLM to cover transaction fees. Fund your account via Friendbot.');
+              setErrorMessage('Account not found. You need XLM for transaction fees. Fund your account via Friendbot.');
               setSyncStatus('error');
               return;
             }
+            throw new Error('Failed to fetch account balance.');
           }
-        } catch {
-          // If balance check fails, continue with the link attempt
+          const account = await response.json();
+          const xlmBalance = account.balances?.find((b: any) => b.asset_type === 'native');
+          if (!xlmBalance || parseFloat(xlmBalance.balance) < 2) {
+            setErrorType('insufficient_funds');
+            setErrorMessage('Insufficient balance for transaction fees. You need at least 2 XLM to cover fees and storage rent.');
+            setSyncStatus('error');
+            return;
+          }
+        } catch (e: any) {
+          console.warn('[CoupleSync] Balance check error:', e);
+          // If network fails, we just continue and let the transaction fail
         }
       }
 
-      // In a real implementation, this would call the Soroban contract.
-      // For demo purposes, simulate a successful link after a short delay.
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      let txHash = 'tx_' + Math.random().toString(36).substring(2, 15);
 
-      const fakeTxHash = 'tx_' + Math.random().toString(36).substring(2, 15);
-      setTxHash(fakeTxHash);
+      if (walletStatus === 'connected' && publicKey && !publicKey.startsWith('GDEMO')) {
+        // 2. Build Transaction
+        console.log('[CoupleSync] Building transaction...');
+        const server = new StellarSdk.rpc.Server(SOROBAN_URL);
+        const sourceAccount = await server.getAccount(publicKey);
+        const contract = new StellarSdk.Contract(CONTRACT_ID);
+
+        const tx = new StellarSdk.TransactionBuilder(sourceAccount, {
+          fee: '10000',
+          networkPassphrase: NETWORK_PASSPHRASE,
+        })
+          .addOperation(contract.call('link_partners',
+            new StellarSdk.Address(publicKey).toScVal(),
+            new StellarSdk.Address(partnerAddress).toScVal()
+          ))
+          .setTimeout(30)
+          .build();
+
+        // 3. Simulate Transaction
+        console.log('[CoupleSync] Simulating transaction...');
+        const simTx = await server.simulateTransaction(tx);
+        if (StellarSdk.rpc.Api.isSimulationError(simTx)) {
+          throw new Error('Transaction simulation failed: ' + simTx.error);
+        }
+
+        // Assemble the transaction with the footprint from the simulation
+        const assembledTx = StellarSdk.rpc.assembleTransaction(tx, simTx as any);
+        const assembledTxXdr = assembledTx.build().toXDR();
+
+        // 4. Sign Transaction (Triggers Freighter/xBull popup)
+        console.log('[CoupleSync] Requesting signature...');
+        let signedXdr: string;
+        try {
+          console.log('[CoupleSync] Asking for signature...');
+
+          // Try freighterApi directly first since we know it works
+          const directSign = await freighterApi.signTransaction(assembledTxXdr, { networkPassphrase: NETWORK_PASSPHRASE });
+          if ((directSign as any).error) {
+            throw new Error((directSign as any).error);
+          }
+          signedXdr = (directSign as any).signedTxXdr || (directSign as any).signedXDR;
+        } catch (err: any) {
+          console.warn('[CoupleSync] Direct sign failed, falling back to Kit:', err?.message || err);
+          // Fall back to StellarWalletsKit
+          const signResult = await StellarWalletsKit.signTransaction({
+            xdr: assembledTxXdr,
+            publicKeys: [publicKey],
+            network: NETWORK_PASSPHRASE as any
+          } as any);
+          signedXdr = (signResult as any).signedXDR || (signResult as any).signedTxXdr;
+        }
+
+        // 5. Submit Transaction
+        console.log('[CoupleSync] Submitting transaction...');
+        const submitResponse = await server.sendTransaction(StellarSdk.TransactionBuilder.fromXDR(signedXdr as string, NETWORK_PASSPHRASE) as any);
+        if (submitResponse.status === 'ERROR' || (submitResponse as any).errorResult) {
+          throw new Error('Transaction submission failed on network.');
+        }
+
+        console.log('[CoupleSync] Transaction submitted!', submitResponse);
+        txHash = submitResponse.hash;
+      } else {
+        // Demo mode fallback
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+
+      setTxHash(txHash);
       setSyncStatus('synced');
       setPartnerSynced(true);
     } catch (e: any) {
-      if (e?.message?.includes('User declined') || e?.message?.includes('rejected')) {
+      console.error('[CoupleSync] Transaction error:', e);
+      const msg = (e?.message || e?.toString() || '').toLowerCase();
+
+      // User Rejected handling
+      if (msg.includes('user declined') || msg.includes('rejected') || msg.includes('cancel') || msg.includes('denied')) {
         setErrorType('user_rejected');
-        setErrorMessage('Transaction cancelled. You closed the signing popup.');
-      } else {
+        setErrorMessage('Transaction Cancelled by User');
+      }
+      // Other errors
+      else {
         setErrorType('generic');
-        setErrorMessage(e?.message || 'Failed to link partner.');
+        setErrorMessage(msg || 'Failed to link partner.');
       }
       setSyncStatus('error');
     }
