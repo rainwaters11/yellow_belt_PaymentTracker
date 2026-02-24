@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import HeartLock from './HeartLock';
+import WelcomeCard from './WelcomeCard';
+import OnboardingChecklist from './OnboardingChecklist';
 import './CoupleSync.css';
 import { StellarWalletsKit } from '@creit.tech/stellar-wallets-kit';
 // @ts-ignore — resolved via Vite aliases in astro.config.mjs
@@ -43,6 +45,8 @@ export default function CoupleSync() {
   const [showWalletModal, setShowWalletModal] = useState(false);
   const [txHash, setTxHash] = useState<string>('');
   const [partnerSynced, setPartnerSynced] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [hasFunds, setHasFunds] = useState(false);
   const kitReady = useRef(false);
 
   // ─── Initialize StellarWalletsKit ──────────────────────────
@@ -69,6 +73,44 @@ export default function CoupleSync() {
       })();
     }
   }, []);
+
+  // ─── Background Balance Watcher ──────────────────────────────
+  useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval>;
+
+    const checkBalance = async () => {
+      // Only check if connected, not demo, and hasn't yet been marked as funded
+      if (walletStatus !== 'connected' || publicKey.startsWith('GDEMO') || hasFunds) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`${HORIZON_URL}/accounts/${publicKey}`);
+        if (response.ok) {
+          const data = await response.json();
+          const nativeBalance = data.balances.find((b: any) => b.asset_type === 'native');
+
+          if (nativeBalance && parseFloat(nativeBalance.balance) > 0) {
+            setHasFunds(true);
+          }
+        }
+      } catch (err) {
+        // Ignore errors, could be 404 if account doesn't exist yet on network
+      }
+    };
+
+    // Initial check
+    checkBalance();
+
+    // Poll every 5 seconds while waiting for funds
+    if (walletStatus === 'connected' && !publicKey.startsWith('GDEMO') && !hasFunds) {
+      intervalId = setInterval(checkBalance, 5000);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [walletStatus, publicKey, hasFunds]);
 
   // ─── Wallet Connection via StellarWalletsKit + freighter-api ──
   const connectWallet = useCallback(async (walletId: string) => {
@@ -337,269 +379,292 @@ export default function CoupleSync() {
         <div className="orb orb-3" />
       </div>
 
-      <header className="app-header">
-        <div className="logo">
-          <HeartLock
-            synced={syncStatus === 'synced' && partnerSynced}
-            isAnimating={syncStatus === 'linking'}
-            size={40}
-            className="logo-heart"
+      {!hasStarted ? (
+        <WelcomeCard onStart={() => setHasStarted(true)} />
+      ) : (
+        <>
+          <OnboardingChecklist
+            walletConnected={walletStatus === 'connected'}
+            hasFunds={hasFunds || publicKey.startsWith('GDEMO')}
+            partnerLinked={syncStatus === 'synced' && partnerSynced}
           />
-          <h1>Couple Sync Vault</h1>
-        </div>
-        <p className="subtitle">Link your Stellar wallets together on the blockchain</p>
-        <span className="network-badge">Testnet</span>
-      </header>
 
-      <main className="main-card">
-        {/* ─── Sync Success Screen ─── */}
-        {syncStatus === 'synced' && partnerSynced && (
-          <div className="sync-success">
-            <div className="success-pulse" />
-            <div className="success-icon">✨</div>
-            <h2>Sync Successful!</h2>
-            <p>Your wallets are now linked on the Stellar blockchain.</p>
-            <div className="sync-details">
-              <div className="detail-row">
-                <span className="detail-label">Your Address</span>
-                <span className="detail-value">{publicKey.slice(0, 8)}...{publicKey.slice(-8)}</span>
-              </div>
-              <div className="detail-row">
-                <span className="detail-label">Partner Address</span>
-                <span className="detail-value">{partnerAddress.slice(0, 8)}...{partnerAddress.slice(-8)}</span>
-              </div>
-              {txHash && (
-                <div className="detail-row">
-                  <span className="detail-label">Transaction</span>
-                  <a
-                    href={`https://stellar.expert/explorer/testnet/tx/${txHash}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="tx-link"
-                  >
-                    View on Stellar Expert →
-                  </a>
-                </div>
-              )}
+          <header className="app-header">
+            <div className="logo">
+              <HeartLock
+                synced={syncStatus === 'synced' && partnerSynced}
+                isAnimating={syncStatus === 'linking'}
+                size={40}
+                className="logo-heart"
+              />
+              <h1>Couple Sync Vault</h1>
             </div>
-            <button className="btn btn-secondary" onClick={disconnect}>
-              Disconnect
-            </button>
-          </div>
-        )}
+            <p className="subtitle">Link your Stellar wallets together on the blockchain</p>
+            <span className="network-badge">Testnet</span>
+          </header>
 
-        {/* ─── Main Flow ─── */}
-        {(syncStatus !== 'synced' || !partnerSynced) && (
-          <>
-            {/* Wallet Connection */}
-            <section className="section">
-              <h3 className="section-title">
-                <span className="step-number">1</span>
-                Connect Your Wallet
-              </h3>
-
-              {walletStatus === 'disconnected' && (
-                <div className="wallet-actions">
-                  <button
-                    className="btn btn-primary btn-glow"
-                    onClick={() => setShowWalletModal(true)}
-                  >
-                    🔗 Select Wallet
-                  </button>
-                  <button
-                    className="btn btn-ghost"
-                    onClick={connectDemo}
-                  >
-                    Try Demo Mode
-                  </button>
+          <main className="main-card">
+            {/* ─── Sync Success Screen ─── */}
+            {syncStatus === 'synced' && partnerSynced && (
+              <div className="sync-success">
+                <div className="success-pulse" />
+                <div className="success-icon">✨</div>
+                <h2>Vault Secured: {publicKey.slice(0, 4)} + {partnerAddress.slice(0, 4)}</h2>
+                <p>Your wallets are now linked on the Stellar blockchain.</p>
+                <div className="sync-details">
+                  <div className="detail-row">
+                    <span className="detail-label">Your Address</span>
+                    <span className="detail-value">{publicKey.slice(0, 8)}...{publicKey.slice(-8)}</span>
+                  </div>
+                  <div className="detail-row">
+                    <span className="detail-label">Partner Address</span>
+                    <span className="detail-value">{partnerAddress.slice(0, 8)}...{partnerAddress.slice(-8)}</span>
+                  </div>
+                  {txHash && (
+                    <div className="detail-row">
+                      <span className="detail-label">Transaction</span>
+                      <a
+                        href={`https://stellar.expert/explorer/testnet/tx/${txHash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="tx-link"
+                      >
+                        View on Stellar Expert →
+                      </a>
+                    </div>
+                  )}
                 </div>
-              )}
 
-              {walletStatus === 'connecting' && (
-                <div className="connecting">
-                  <div className="spinner" />
-                  <span>Connecting...</span>
+                <div className="whats-next" style={{ textAlign: 'left', background: 'var(--glass-bg, rgba(255,255,255,0.05))', padding: '1.25rem', borderRadius: '12px', margin: '1.5rem 0' }}>
+                  <h4 style={{ margin: '0 0 0.75rem 0', color: 'var(--text-primary, #fff)' }}>What's Next?</h4>
+                  <ul style={{ margin: 0, paddingLeft: '1.5rem', fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', color: 'var(--text-secondary, rgba(255,255,255,0.7))' }}>
+                    <li><strong style={{ color: 'var(--text-primary, #fff)' }}>Verify the Bond:</strong> Click 'View on Stellar Expert' to see your link recorded permanently on the global ledger.</li>
+                    <li><strong style={{ color: 'var(--text-primary, #fff)' }}>Test the Shared State:</strong> Have your partner connect their wallet on their device; they will see this same 'Synced' status immediately.</li>
+                    <li><strong style={{ color: 'var(--text-primary, #fff)' }}>Digital Time Capsule:</strong> This link is your 'Digital Anniversary'—a verifiable proof of partnership stored on the Stellar Testnet.</li>
+                  </ul>
                 </div>
-              )}
 
-              {walletStatus === 'connected' && (
-                <div className="connected-info">
-                  <div className="status-dot" />
-                  <span className="address">
-                    {publicKey.slice(0, 8)}...{publicKey.slice(-8)}
-                  </span>
+                <button className="btn btn-secondary" onClick={disconnect}>
+                  Disconnect
+                </button>
+              </div>
+            )}
 
-                  {/* Friendbot Funding Button */}
-                  {!publicKey.startsWith('GDEMO') && (
-                    <button
-                      className="btn btn-sm btn-ghost fund-btn"
-                      onClick={async (e) => {
-                        const btn = e.currentTarget;
-                        const originalText = btn.innerText;
-                        btn.innerText = 'Funding...';
-                        btn.disabled = true;
-                        try {
-                          const friendbotUrl = NETWORK === 'TESTNET'
-                            ? `https://friendbot.stellar.org/?addr=${publicKey}`
-                            : `https://friendbot.stellar.org/?addr=${publicKey}`;
-                          const response = await fetch(friendbotUrl);
-                          if (response.ok) {
-                            btn.innerText = 'Funded! ✨';
-                            setTimeout(() => {
-                              if (btn) {
-                                btn.innerText = originalText;
-                                btn.disabled = false;
-                              }
-                            }, 3000);
-                          } else {
-                            throw new Error('Friendbot failed');
-                          }
-                        } catch (err) {
-                          btn.innerText = 'Failed ❌';
-                          setTimeout(() => {
-                            if (btn) {
-                              btn.innerText = originalText;
-                              btn.disabled = false;
-                            }
-                          }, 3000);
-                          // Fallback to opening lab in new tab if API fails
-                          window.open('https://lab.stellar.org/account/fund', '_blank');
-                        }
-                      }}
-                    >
-                      🎁 Fund Me
-                    </button>
+            {/* ─── Main Flow ─── */}
+            {(syncStatus !== 'synced' || !partnerSynced) && (
+              <>
+                {/* Wallet Connection */}
+                <section className="section">
+                  <h3 className="section-title">
+                    <span className="step-number">1</span>
+                    Connect Your Wallet
+                  </h3>
+
+                  {walletStatus === 'disconnected' && (
+                    <div className="wallet-actions">
+                      <button
+                        className="btn btn-primary btn-glow"
+                        onClick={() => setShowWalletModal(true)}
+                      >
+                        🔗 Select Wallet
+                      </button>
+                      <button
+                        className="btn btn-ghost"
+                        onClick={connectDemo}
+                      >
+                        Try Demo Mode
+                      </button>
+                    </div>
                   )}
 
-                  <button className="btn btn-sm btn-ghost" onClick={disconnect}>
-                    Disconnect
-                  </button>
-                </div>
-              )}
-            </section>
+                  {walletStatus === 'connecting' && (
+                    <div className="connecting">
+                      <div className="spinner" />
+                      <span>Connecting...</span>
+                    </div>
+                  )}
 
-            {/* Partner Linking */}
-            {walletStatus === 'connected' && (
-              <section className="section">
-                <h3 className="section-title">
-                  <span className="step-number">2</span>
-                  Link Your Partner
-                </h3>
-                <div className="input-group">
-                  <input
-                    type="text"
-                    placeholder="Partner's Stellar address (G...)"
-                    value={partnerAddress}
-                    onChange={(e) => setPartnerAddress(e.target.value)}
-                    className="input"
-                    maxLength={56}
-                  />
-                  <button
-                    className="btn btn-primary"
-                    onClick={linkPartner}
-                    disabled={syncStatus === 'linking'}
-                  >
-                    {syncStatus === 'linking' ? (
-                      <>
-                        <div className="spinner spinner-sm" />
-                        Syncing Partners...
-                      </>
-                    ) : (
-                      '💜 Link Partner'
-                    )}
-                  </button>
-                </div>
-              </section>
+                  {walletStatus === 'connected' && (
+                    <div className="connected-info">
+                      <div className="status-dot" />
+                      <span className="address">
+                        {publicKey.slice(0, 8)}...{publicKey.slice(-8)}
+                      </span>
+
+                      {/* Friendbot Funding Button */}
+                      {!publicKey.startsWith('GDEMO') && !hasFunds && (
+                        <button
+                          className="btn btn-sm btn-ghost fund-btn"
+                          onClick={async (e) => {
+                            const btn = e.currentTarget;
+                            const originalText = btn.innerText;
+                            btn.innerText = 'Funding...';
+                            btn.disabled = true;
+                            try {
+                              const friendbotUrl = NETWORK === 'TESTNET'
+                                ? `https://friendbot.stellar.org/?addr=${publicKey}`
+                                : `https://friendbot.stellar.org/?addr=${publicKey}`;
+                              const response = await fetch(friendbotUrl);
+                              if (response.ok) {
+                                btn.innerText = 'Funded! ✨';
+                                setHasFunds(true);
+                                setTimeout(() => {
+                                  if (btn) {
+                                    btn.innerText = originalText;
+                                    btn.disabled = false;
+                                  }
+                                }, 3000);
+                              } else {
+                                throw new Error('Friendbot failed');
+                              }
+                            } catch (err) {
+                              btn.innerText = 'Failed ❌';
+                              setErrorType('insufficient_funds');
+                              setErrorMessage('Internal Friendbot failed. Please open the Freighter extension and click "Get test XLM" at the bottom.');
+                              setTimeout(() => {
+                                if (btn) {
+                                  btn.innerText = originalText;
+                                  btn.disabled = false;
+                                }
+                              }, 3000);
+                            }
+                          }}
+                        >
+                          🎁 Fund Me
+                        </button>
+                      )}
+
+                      <button className="btn btn-sm btn-ghost" onClick={disconnect}>
+                        Disconnect
+                      </button>
+                    </div>
+                  )}
+                </section>
+
+                {/* Partner Linking */}
+                {walletStatus === 'connected' && (
+                  <section className="section">
+                    <h3 className="section-title">
+                      <span className="step-number">2</span>
+                      Link Your Partner
+                    </h3>
+                    <div className="input-group">
+                      <input
+                        type="text"
+                        placeholder="Partner's Stellar address (G...)"
+                        value={partnerAddress}
+                        onChange={(e) => setPartnerAddress(e.target.value)}
+                        className="input"
+                        maxLength={56}
+                      />
+                      <button
+                        className="btn btn-primary"
+                        onClick={linkPartner}
+                        disabled={syncStatus === 'linking'}
+                      >
+                        {syncStatus === 'linking' ? (
+                          <>
+                            <div className="spinner spinner-sm" />
+                            Syncing Partners...
+                          </>
+                        ) : (
+                          '💜 Link Partner'
+                        )}
+                      </button>
+                    </div>
+                  </section>
+                )}
+              </>
             )}
-          </>
-        )}
 
-        {/* ─── Error Display ─── */}
-        {errorType && (
-          <div className={`error-banner error-${errorType}`}>
-            <div className="error-icon">
-              {errorType === 'wallet_not_found' && '🔍'}
-              {errorType === 'user_rejected' && '✋'}
-              {errorType === 'insufficient_funds' && '💰'}
-              {errorType === 'generic' && '⚠️'}
-            </div>
-            <div className="error-content">
-              <strong className="error-title">
-                {errorType === 'wallet_not_found' && 'Wallet Not Found'}
-                {errorType === 'user_rejected' && 'Transaction Cancelled'}
-                {errorType === 'insufficient_funds' && 'Insufficient Funds'}
-                {errorType === 'generic' && 'Error'}
-              </strong>
-              <p>{errorMessage}</p>
-              {errorType === 'wallet_not_found' && (
-                <div className="error-actions">
-                  <a href="https://www.freighter.app/" target="_blank" rel="noopener noreferrer" className="error-link">
-                    Get Freighter
-                  </a>
-                  <a href="https://xbull.app/" target="_blank" rel="noopener noreferrer" className="error-link">
-                    Get xBull
-                  </a>
+            {/* ─── Error Display ─── */}
+            {errorType && (
+              <div className={`error-banner error-${errorType}`}>
+                <div className="error-icon">
+                  {errorType === 'wallet_not_found' && '🔍'}
+                  {errorType === 'user_rejected' && '✋'}
+                  {errorType === 'insufficient_funds' && '💰'}
+                  {errorType === 'generic' && '⚠️'}
                 </div>
-              )}
-              {errorType === 'insufficient_funds' && (
-                <a
-                  href={`https://friendbot.stellar.org?addr=${publicKey}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="error-link"
-                >
-                  Fund via Friendbot →
-                </a>
-              )}
-            </div>
-            <button className="error-close" onClick={() => { setErrorType(null); setErrorMessage(''); }}>
-              ✕
-            </button>
-          </div>
-        )}
-      </main>
+                <div className="error-content">
+                  <strong className="error-title">
+                    {errorType === 'wallet_not_found' && 'Wallet Not Found'}
+                    {errorType === 'user_rejected' && 'Transaction Cancelled'}
+                    {errorType === 'insufficient_funds' && 'Insufficient Funds'}
+                    {errorType === 'generic' && 'Error'}
+                  </strong>
+                  <p>{errorMessage}</p>
+                  {errorType === 'wallet_not_found' && (
+                    <div className="error-actions">
+                      <a href="https://www.freighter.app/" target="_blank" rel="noopener noreferrer" className="error-link">
+                        Get Freighter
+                      </a>
+                      <a href="https://xbull.app/" target="_blank" rel="noopener noreferrer" className="error-link">
+                        Get xBull
+                      </a>
+                    </div>
+                  )}
+                  {errorType === 'insufficient_funds' && (
+                    <a
+                      href={`https://friendbot.stellar.org?addr=${publicKey}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="error-link"
+                    >
+                      Fund via Friendbot →
+                    </a>
+                  )}
+                </div>
+                <button className="error-close" onClick={() => { setErrorType(null); setErrorMessage(''); }}>
+                  ✕
+                </button>
+              </div>
+            )}
+          </main>
 
-      {/* ─── Wallet Selection Modal ─── */}
-      {showWalletModal && (
-        <div className="modal-overlay" onClick={() => setShowWalletModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Select a Wallet</h3>
-              <button className="modal-close" onClick={() => setShowWalletModal(false)}>✕</button>
+          {/* ─── Wallet Selection Modal ─── */}
+          {showWalletModal && (
+            <div className="modal-overlay" onClick={() => setShowWalletModal(false)}>
+              <div className="modal" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <h3>Select a Wallet</h3>
+                  <button className="modal-close" onClick={() => setShowWalletModal(false)}>✕</button>
+                </div>
+                <div className="modal-body">
+                  <button className="wallet-option" id="wallet-freighter" onClick={() => connectWallet('freighter')}>
+                    <span className="wallet-icon">🚀</span>
+                    <div className="wallet-info">
+                      <strong>Freighter</strong>
+                      <span>Browser extension wallet</span>
+                    </div>
+                    <span className="wallet-arrow">→</span>
+                  </button>
+                  <button className="wallet-option" id="wallet-xbull" onClick={() => connectWallet('xBull')}>
+                    <span className="wallet-icon">🐂</span>
+                    <div className="wallet-info">
+                      <strong>xBull</strong>
+                      <span>Multi-platform wallet</span>
+                    </div>
+                    <span className="wallet-arrow">→</span>
+                  </button>
+                  <button className="wallet-option" id="wallet-albedo" onClick={() => connectWallet('Albedo')}>
+                    <span className="wallet-icon">🌟</span>
+                    <div className="wallet-info">
+                      <strong>Albedo</strong>
+                      <span>Web-based wallet</span>
+                    </div>
+                    <span className="wallet-arrow">→</span>
+                  </button>
+                </div>
+              </div>
             </div>
-            <div className="modal-body">
-              <button className="wallet-option" id="wallet-freighter" onClick={() => connectWallet('freighter')}>
-                <span className="wallet-icon">🚀</span>
-                <div className="wallet-info">
-                  <strong>Freighter</strong>
-                  <span>Browser extension wallet</span>
-                </div>
-                <span className="wallet-arrow">→</span>
-              </button>
-              <button className="wallet-option" id="wallet-xbull" onClick={() => connectWallet('xBull')}>
-                <span className="wallet-icon">🐂</span>
-                <div className="wallet-info">
-                  <strong>xBull</strong>
-                  <span>Multi-platform wallet</span>
-                </div>
-                <span className="wallet-arrow">→</span>
-              </button>
-              <button className="wallet-option" id="wallet-albedo" onClick={() => connectWallet('Albedo')}>
-                <span className="wallet-icon">🌟</span>
-                <div className="wallet-info">
-                  <strong>Albedo</strong>
-                  <span>Web-based wallet</span>
-                </div>
-                <span className="wallet-arrow">→</span>
-              </button>
-            </div>
-          </div>
-        </div>
+          )}
+
+          <footer className="app-footer">
+            <p>Built with <HeartLock synced={syncStatus === 'synced' && partnerSynced} size={16} /> on <a href="https://stellar.org" target="_blank" rel="noopener noreferrer">Stellar</a> · Soroban Smart Contracts</p>
+          </footer>
+        </>
       )}
-
-      <footer className="app-footer">
-        <p>Built with <HeartLock synced={syncStatus === 'synced' && partnerSynced} size={16} /> on <a href="https://stellar.org" target="_blank" rel="noopener noreferrer">Stellar</a> · Soroban Smart Contracts</p>
-      </footer>
     </div>
   );
 }
