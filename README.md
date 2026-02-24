@@ -34,7 +34,7 @@ The "Select Wallet" modal provides users with a choice of Stellar wallets:
 ## Contract ID
 
 ```text
-PLACEHOLDER_CONTRACT_ID
+CBTWI3DMBN4P3XVEUPKSVOSRYH6NFKYZ3RFKWA54YGBTEOA4YSO7VLOW
 ```
 
 > Replace with your deployed Contract ID after running the deploy command.

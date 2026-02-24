@@ -15,10 +15,10 @@ import freighterApi from '@stellar/freighter-api';
 import * as StellarSdk from '@stellar/stellar-sdk';
 
 // ─── Contract config ────────────────────────────────────────────
-const CONTRACT_ID = 'CDIZH37S3ZQ6KZOA6YVYMIR5PMZ5BXMZBG6VP3GKXZQOI6JM5BCYWVRP';
-const NETWORK = 'FUTURENET';
-const HORIZON_URL = 'https://horizon-futurenet.stellar.org';
-const SOROBAN_URL = 'https://soroban-futurenet.stellar.org';
+const CONTRACT_ID = 'CBTWI3DMBN4P3XVEUPKSVOSRYH6NFKYZ3RFKWA54YGBTEOA4YSO7VLOW';
+const NETWORK = 'TESTNET';
+const HORIZON_URL = 'https://horizon-testnet.stellar.org';
+const SOROBAN_URL = 'https://soroban-testnet.stellar.org';
 
 // Supported Stellar network passphrases
 const NETWORKS: Record<string, string> = {
@@ -428,6 +428,49 @@ export default function CoupleSync() {
                   <span className="address">
                     {publicKey.slice(0, 8)}...{publicKey.slice(-8)}
                   </span>
+
+                  {/* Friendbot Funding Button */}
+                  {!publicKey.startsWith('GDEMO') && (
+                    <button
+                      className="btn btn-sm btn-ghost fund-btn"
+                      onClick={async (e) => {
+                        const btn = e.currentTarget;
+                        const originalText = btn.innerText;
+                        btn.innerText = 'Funding...';
+                        btn.disabled = true;
+                        try {
+                          const friendbotUrl = NETWORK === 'TESTNET'
+                            ? `https://friendbot.stellar.org/?addr=${publicKey}`
+                            : `https://friendbot.stellar.org/?addr=${publicKey}`;
+                          const response = await fetch(friendbotUrl);
+                          if (response.ok) {
+                            btn.innerText = 'Funded! ✨';
+                            setTimeout(() => {
+                              if (btn) {
+                                btn.innerText = originalText;
+                                btn.disabled = false;
+                              }
+                            }, 3000);
+                          } else {
+                            throw new Error('Friendbot failed');
+                          }
+                        } catch (err) {
+                          btn.innerText = 'Failed ❌';
+                          setTimeout(() => {
+                            if (btn) {
+                              btn.innerText = originalText;
+                              btn.disabled = false;
+                            }
+                          }, 3000);
+                          // Fallback to opening lab in new tab if API fails
+                          window.open('https://lab.stellar.org/account/fund', '_blank');
+                        }
+                      }}
+                    >
+                      🎁 Fund Me
+                    </button>
+                  )}
+
                   <button className="btn btn-sm btn-ghost" onClick={disconnect}>
                     Disconnect
                   </button>

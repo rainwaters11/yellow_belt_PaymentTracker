@@ -38,10 +38,15 @@ impl CoupleSync {
 
     /// Returns true if both user->partner and partner->user mappings exist and match.
     pub fn is_synced(env: Env, user: Address) -> bool {
+        let key = DataKey::Partner(user.clone());
+        if !env.storage().instance().has(&key) {
+            return false;
+        }
+
         let partner: Option<Address> = env
             .storage()
             .instance()
-            .get(&DataKey::Partner(user.clone()));
+            .get(&key);
 
         match partner {
             Some(p) => Self::is_synced_internal(&env, &user, &p),
@@ -51,16 +56,26 @@ impl CoupleSync {
 
     /// Returns the partner address for a given user, if one has been set.
     pub fn get_partner(env: Env, user: Address) -> Option<Address> {
-        env.storage()
-            .instance()
-            .get(&DataKey::Partner(user))
+        let key = DataKey::Partner(user);
+        if env.storage().instance().has(&key) {
+            env.storage()
+                .instance()
+                .get(&key)
+        } else {
+            None
+        }
     }
 
     fn is_synced_internal(env: &Env, user: &Address, partner: &Address) -> bool {
+        let key = DataKey::Partner(partner.clone());
+        if !env.storage().instance().has(&key) {
+            return false;
+        }
+
         let reverse: Option<Address> = env
             .storage()
             .instance()
-            .get(&DataKey::Partner(partner.clone()));
+            .get(&key);
 
         match reverse {
             Some(ref reverse_partner) => reverse_partner == user,
