@@ -23,6 +23,8 @@ To satisfy the Level 2 requirement for real-time data synchronization:
 
 ## Wallet Options
 
+![Wallet Options](screenshots/wallet-options.png)
+
 The "Select Wallet" modal provides users with a choice of Stellar wallets:
 
 | Wallet      | Description              |
