@@ -14,10 +14,15 @@ export default function HeartLock({ synced, size = 40, className = '' }: HeartLo
             : 'drop-shadow(0 0 6px rgba(139, 92, 246, 0.4))',
     };
 
+    const heartFill = synced ? '#ec4899' : '#7c3aed';
+    const heartStroke = synced ? '#f472b6' : '#a78bfa';
+    const lockFill = synced ? '#fce7f3' : '#ede9fe';
+    const lockStroke = synced ? '#be185d' : '#5b21b6';
+
     return (
         <svg
             xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 64 64"
+            viewBox="0 0 100 100"
             width={size}
             height={size}
             className={`heart-lock ${synced ? 'heart-lock--synced' : ''} ${className}`}
@@ -26,54 +31,53 @@ export default function HeartLock({ synced, size = 40, className = '' }: HeartLo
         >
             {/* Heart shape */}
             <path
-                d="M32 56 C32 56 6 40 6 22 C6 13 13 6 22 6 C27 6 31 9 32 12 C33 9 37 6 42 6 C51 6 58 13 58 22 C58 40 32 56 32 56Z"
-                fill={synced ? '#ec4899' : '#7c3aed'}
-                stroke={synced ? '#f472b6' : '#a78bfa'}
-                strokeWidth="1.5"
+                d="M50 88 C50 88 8 62 8 32 C8 18 19 8 33 8 C41 8 48 13 50 18 C52 13 59 8 67 8 C81 8 92 18 92 32 C92 62 50 88 50 88Z"
+                fill={heartFill}
+                stroke={heartStroke}
+                strokeWidth="2"
                 style={{ transition: 'fill 0.3s ease, stroke 0.3s ease' }}
             />
 
-            {/* Lock body */}
-            <rect
-                x="23"
-                y="28"
-                width="18"
-                height="14"
-                rx="3"
-                fill={synced ? '#fdf2f8' : '#ede9fe'}
-                stroke={synced ? '#ec4899' : '#7c3aed'}
-                strokeWidth="1.5"
-                style={{ transition: 'fill 0.3s ease, stroke 0.3s ease' }}
-            />
-
-            {/* Lock shackle */}
+            {/* Lock shackle (the U-shaped top part) */}
             <path
                 d={synced
-                    ? 'M27 28 V24 C27 20 31 17 35 17 C39 17 37 20 37 24 V28'  /* open shackle */
-                    : 'M27 28 V24 C27 19 31 17 32 17 C33 17 37 19 37 24 V28'  /* closed shackle */
+                    ? 'M38 44 L38 34 C38 25 43 20 50 20 C54 20 56 22 57 26 L57 30 L57 28'
+                    : 'M38 44 L38 34 C38 25 43 20 50 20 C57 20 62 25 62 34 L62 44'
                 }
                 fill="none"
-                stroke={synced ? '#ec4899' : '#7c3aed'}
-                strokeWidth="2"
+                stroke={lockStroke}
+                strokeWidth="4.5"
                 strokeLinecap="round"
-                style={{ transition: 'd 0.3s ease, stroke 0.3s ease' }}
+                style={{ transition: 'stroke 0.3s ease' }}
             />
 
-            {/* Keyhole */}
+            {/* Lock body (rounded rectangle) */}
+            <rect
+                x="33"
+                y="44"
+                width="34"
+                height="26"
+                rx="5"
+                ry="5"
+                fill={lockFill}
+                stroke={lockStroke}
+                strokeWidth="3"
+                style={{ transition: 'fill 0.3s ease, stroke 0.3s ease' }}
+            />
+
+            {/* Keyhole - circle */}
             <circle
-                cx="32"
-                cy="33"
-                r="2"
-                fill={synced ? '#ec4899' : '#7c3aed'}
+                cx="50"
+                cy="54"
+                r="4"
+                fill={lockStroke}
                 style={{ transition: 'fill 0.3s ease' }}
             />
-            <rect
-                x="31"
-                y="34"
-                width="2"
-                height="4"
-                rx="1"
-                fill={synced ? '#ec4899' : '#7c3aed'}
+
+            {/* Keyhole - bottom notch */}
+            <path
+                d="M48 56 L50 65 L52 56"
+                fill={lockStroke}
                 style={{ transition: 'fill 0.3s ease' }}
             />
         </svg>
