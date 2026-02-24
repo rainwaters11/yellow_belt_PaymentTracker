@@ -14,7 +14,14 @@ const CONTRACT_ID = 'PLACEHOLDER_CONTRACT_ID'; // Replace after deploy
 const NETWORK = 'TESTNET';
 const HORIZON_URL = 'https://horizon-testnet.stellar.org';
 const SOROBAN_URL = 'https://soroban-testnet.stellar.org';
-const NETWORK_PASSPHRASE = 'Test SDF Network ; September 2015';
+
+// Supported Stellar network passphrases
+const NETWORKS: Record<string, string> = {
+  TESTNET: 'Test SDF Network ; September 2015',
+  FUTURENET: 'Test SDF Future Network ; October 2022',
+  PUBLIC: 'Public Global Stellar Network ; September 2015',
+};
+const NETWORK_PASSPHRASE = NETWORKS[NETWORK] || NETWORKS.TESTNET;
 
 // ─── Types ──────────────────────────────────────────────────────
 type WalletStatus = 'disconnected' | 'connecting' | 'connected';

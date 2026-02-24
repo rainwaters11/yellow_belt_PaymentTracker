@@ -19,8 +19,11 @@ export default defineConfig({
       },
     },
     optimizeDeps: {
-      // Pre-bundle the CJS @stellar/freighter-api so named ESM imports work
-      include: ['@stellar/freighter-api'],
+      // Pre-bundle both packages so CJS → ESM conversion works in dev
+      include: [
+        '@stellar/freighter-api',
+        '@creit.tech/stellar-wallets-kit',
+      ],
     },
     ssr: {
       noExternal: ['@creit.tech/stellar-wallets-kit'],
