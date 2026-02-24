@@ -339,7 +339,12 @@ export default function CoupleSync() {
 
       <header className="app-header">
         <div className="logo">
-          <HeartLock synced={syncStatus === 'synced' && partnerSynced} size={40} className="logo-heart" />
+          <HeartLock
+            synced={syncStatus === 'synced' && partnerSynced}
+            isAnimating={syncStatus === 'linking'}
+            size={40}
+            className="logo-heart"
+          />
           <h1>Couple Sync Vault</h1>
         </div>
         <p className="subtitle">Link your Stellar wallets together on the blockchain</p>
@@ -454,7 +459,7 @@ export default function CoupleSync() {
                     {syncStatus === 'linking' ? (
                       <>
                         <div className="spinner spinner-sm" />
-                        Linking...
+                        Syncing Partners...
                       </>
                     ) : (
                       '💜 Link Partner'

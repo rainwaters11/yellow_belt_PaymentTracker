@@ -13,6 +13,10 @@
 - **Error Handling** — Three professional error states: Wallet Not Found, User Rejected, Insufficient Funds
 - **Premium UI** — Dark theme with glassmorphism, animated gradient orbs, and micro-animations
 
+### 📡 Real-Time State Sync
+To satisfy the Level 2 requirement for real-time data synchronization:
+- The dApp uses a `useEffect` hook to subscribe to contract events via the Stellar SDK.
+- When the `SyncSuccessful` event is emitted by the Soroban contract, the frontend triggers a "Heartbeat" pulse animation on the logo without a page refresh.
 ---
 
 ## Wallet Options

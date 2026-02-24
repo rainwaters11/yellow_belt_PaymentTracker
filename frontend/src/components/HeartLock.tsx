@@ -2,16 +2,18 @@ import type { CSSProperties } from 'react';
 
 interface HeartLockProps {
     synced: boolean;
+    isAnimating?: boolean;
     size?: number;
     className?: string;
 }
 
-export default function HeartLock({ synced, size = 40, className = '' }: HeartLockProps) {
+export default function HeartLock({ synced, isAnimating = false, size = 40, className = '' }: HeartLockProps) {
     const style: CSSProperties = {
         transition: 'filter 0.3s ease, transform 0.3s ease',
         filter: synced
             ? 'drop-shadow(0 0 12px rgba(236, 72, 153, 0.7))'
             : 'drop-shadow(0 0 6px rgba(139, 92, 246, 0.4))',
+        animation: isAnimating ? 'pulse 1.5s infinite ease-in-out' : 'none'
     };
 
     const heartFill = synced ? '#ec4899' : '#7c3aed';
