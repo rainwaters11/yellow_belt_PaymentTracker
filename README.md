@@ -103,10 +103,10 @@ Open [http://localhost:4321](http://localhost:4321) in your browser.
 ## Transaction Hash
 
 ```text
-PLACEHOLDER_TX_HASH
+49329072fbe1ab7dde5d49888de58e168fdb75c453ffa3a90560e4044d4bcb44
 ```
 
-> [View on Stellar Expert](https://stellar.expert/explorer/testnet/tx/PLACEHOLDER_TX_HASH)
+> [View on Stellar Expert](https://stellar.expert/explorer/testnet/tx/49329072fbe1ab7dde5d49888de58e168fdb75c453ffa3a90560e4044d4bcb44)
 
 ---
 
