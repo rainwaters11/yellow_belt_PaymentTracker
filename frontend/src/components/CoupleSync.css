@@ -141,9 +141,9 @@ body {
   margin-bottom: 0.5rem;
 }
 
-.logo-icon {
-  font-size: 2.5rem;
-  animation: pulse-glow 3s infinite;
+.logo-heart {
+  animation: heartbeat 2s infinite;
+  filter: drop-shadow(0 0 8px var(--accent-pink));
 }
 
 .logo h1 {
@@ -810,6 +810,30 @@ body {
 
   80% {
     transform: translateX(4px);
+  }
+}
+
+@keyframes heartbeat {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  14% {
+    transform: scale(1.15);
+  }
+
+  28% {
+    transform: scale(1);
+  }
+
+  42% {
+    transform: scale(1.15);
+  }
+
+  56% {
+    transform: scale(1);
   }
 }
 
