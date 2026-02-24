@@ -115,7 +115,7 @@ Open [http://localhost:4321](http://localhost:4321) in your browser.
 ## Vercel Link
 
 ```text
-PLACEHOLDER_VERCEL_URL
+https://yellow-belt-payment-tracker.vercel.app/
 ```
 
 ---
