@@ -9,11 +9,15 @@ import { xBullModule } from 'swk/xbull';
 // @ts-ignore
 import { AlbedoModule } from 'swk/albedo';
 
+// Import freighter-api as default (CJS module — named ESM imports break in Vite)
+// @ts-ignore
+import freighterApi from '@stellar/freighter-api';
+
 // ─── Contract config ────────────────────────────────────────────
 const CONTRACT_ID = 'PLACEHOLDER_CONTRACT_ID'; // Replace after deploy
-const NETWORK = 'TESTNET';
-const HORIZON_URL = 'https://horizon-testnet.stellar.org';
-const SOROBAN_URL = 'https://soroban-testnet.stellar.org';
+const NETWORK = 'FUTURENET';
+const HORIZON_URL = 'https://horizon-futurenet.stellar.org';
+const SOROBAN_URL = 'https://soroban-futurenet.stellar.org';
 
 // Supported Stellar network passphrases
 const NETWORKS: Record<string, string> = {
@@ -53,41 +57,19 @@ export default function CoupleSync() {
       });
       kitReady.current = true;
 
-      // ── Diagnostic: log browser wallet globals ──
-      console.log('[CoupleSync] Wallet diagnostics:', {
-        'window.freighter': typeof (window as any).freighter,
-        'window.freighterApi': typeof (window as any).freighterApi,
-        'window.stellar': typeof (window as any).stellar,
-        'window.xBullSDK': typeof (window as any).xBullSDK,
-      });
+      // ── Diagnostic: check freighter-api availability ──
+      (async () => {
+        try {
+          const connCheck = await freighterApi.isConnected();
+          console.log('[CoupleSync] freighter-api isConnected:', connCheck);
+        } catch (err) {
+          console.log('[CoupleSync] freighter-api check failed:', err);
+        }
+      })();
     }
   }, []);
 
-  // ─── Direct Freighter fallback (bypasses CJS import issue) ──
-  const connectFreighterDirect = useCallback(async (): Promise<string | null> => {
-    // Modern Freighter exposes window.freighterApi
-    const api = (window as any).freighterApi;
-    if (api) {
-      console.log('[CoupleSync] Using window.freighterApi directly');
-      const result = await api.requestAccess();
-      if (result?.error) throw new Error(result.error);
-      const addr = await api.getAddress();
-      if (addr?.error) throw new Error(addr.error);
-      return addr?.address || null;
-    }
-
-    // Legacy Freighter exposes window.freighter
-    const legacy = (window as any).freighter;
-    if (legacy) {
-      console.log('[CoupleSync] Using window.freighter (legacy) directly');
-      await legacy.requestAccess();
-      return await legacy.getPublicKey();
-    }
-
-    return null;
-  }, []);
-
-  // ─── Wallet Connection via StellarWalletsKit ────────────────
+  // ─── Wallet Connection via StellarWalletsKit + freighter-api ──
   const connectWallet = useCallback(async (walletId: string) => {
     setErrorType(null);
     setErrorMessage('');
@@ -96,57 +78,82 @@ export default function CoupleSync() {
 
     console.log(`[CoupleSync] Connecting wallet: ${walletId}`);
 
-    try {
-      // Set the active wallet module in the kit
-      StellarWalletsKit.setWallet(walletId);
+    // ── Freighter: use freighter-api directly (CJS fix) ──
+    if (walletId === 'freighter') {
+      try {
+        // Step 1: Check if Freighter extension is installed
+        const connResult = await freighterApi.isConnected();
+        console.log('[CoupleSync] isConnected result:', connResult);
 
-      // Request the address — triggers the wallet extension popup
+        if (connResult?.error || !connResult?.isConnected) {
+          setErrorType('wallet_not_found');
+          setErrorMessage('Freighter wallet extension not detected. Please install it to continue.');
+          setWalletStatus('disconnected');
+          return;
+        }
+
+        // Step 2: Request access (triggers the Freighter popup)
+        const accessResult = await freighterApi.requestAccess();
+        console.log('[CoupleSync] requestAccess result:', accessResult);
+
+        if (accessResult?.error) {
+          const errMsg = String(accessResult.error);
+          if (errMsg.includes('denied') || errMsg.includes('reject') || errMsg.includes('cancel')) {
+            setErrorType('user_rejected');
+            setErrorMessage('Transaction cancelled. You closed the wallet popup.');
+          } else {
+            setErrorType('generic');
+            setErrorMessage(errMsg);
+          }
+          setWalletStatus('disconnected');
+          return;
+        }
+
+        // Step 3: Get the public address
+        const addrResult = await freighterApi.getAddress();
+        console.log('[CoupleSync] getAddress result:', addrResult);
+
+        if (addrResult?.error || !addrResult?.address) {
+          setErrorType('generic');
+          setErrorMessage('Could not retrieve your address from Freighter.');
+          setWalletStatus('disconnected');
+          return;
+        }
+
+        // Also tell StellarWalletsKit which wallet is active
+        try { StellarWalletsKit.setWallet('freighter'); } catch (_) { }
+
+        setPublicKey(addrResult.address);
+        setWalletStatus('connected');
+        console.log(`[CoupleSync] Connected: ${addrResult.address}`);
+        return;
+      } catch (e: any) {
+        console.error('[CoupleSync] Freighter error:', e);
+        const msg = (e?.message || '').toLowerCase();
+        if (msg.includes('declined') || msg.includes('rejected') || msg.includes('cancel') || msg.includes('denied')) {
+          setErrorType('user_rejected');
+          setErrorMessage('Transaction cancelled. You closed the wallet popup.');
+        } else {
+          setErrorType('wallet_not_found');
+          setErrorMessage('Could not connect to Freighter. Make sure the extension is installed and unlocked.');
+        }
+        setWalletStatus('disconnected');
+        return;
+      }
+    }
+
+    // ── xBull / Albedo: use StellarWalletsKit ──
+    try {
+      StellarWalletsKit.setWallet(walletId);
       const { address } = await StellarWalletsKit.getAddress();
-      console.log(`[CoupleSync] StellarWalletsKit connected: ${address}`);
       setPublicKey(address);
       setWalletStatus('connected');
     } catch (e: any) {
-      console.warn('[CoupleSync] StellarWalletsKit error:', e?.message || e);
-
-      // ── Freighter fallback: try direct browser API ──
-      if (walletId === 'freighter') {
-        try {
-          console.log('[CoupleSync] Trying direct Freighter fallback...');
-          const address = await connectFreighterDirect();
-          if (address) {
-            console.log(`[CoupleSync] Direct Freighter connected: ${address}`);
-            setPublicKey(address);
-            setWalletStatus('connected');
-            return;
-          }
-        } catch (fallbackErr: any) {
-          console.warn('[CoupleSync] Direct fallback also failed:', fallbackErr?.message);
-          const fbMsg = (fallbackErr?.message || '').toLowerCase();
-          if (fbMsg.includes('declined') || fbMsg.includes('rejected') || fbMsg.includes('cancel') || fbMsg.includes('denied')) {
-            setErrorType('user_rejected');
-            setErrorMessage('Transaction cancelled. You closed the wallet popup.');
-            setWalletStatus('disconnected');
-            return;
-          }
-        }
-      }
-
-      // ── Classify the original error ──
       const msg = (e?.message || e?.toString() || '').toLowerCase();
-      if (
-        msg.includes('not connected') ||
-        msg.includes('not installed') ||
-        msg.includes('not available') ||
-        msg.includes('is not and existing module')
-      ) {
+      if (msg.includes('not connected') || msg.includes('not installed') || msg.includes('not available')) {
         setErrorType('wallet_not_found');
         setErrorMessage(`${walletId} wallet extension not detected. Please install it to continue.`);
-      } else if (
-        msg.includes('user declined') ||
-        msg.includes('rejected') ||
-        msg.includes('cancel') ||
-        msg.includes('denied')
-      ) {
+      } else if (msg.includes('declined') || msg.includes('rejected') || msg.includes('cancel') || msg.includes('denied')) {
         setErrorType('user_rejected');
         setErrorMessage('Transaction cancelled. You closed the wallet popup.');
       } else {
@@ -155,7 +162,7 @@ export default function CoupleSync() {
       }
       setWalletStatus('disconnected');
     }
-  }, [connectFreighterDirect]);
+  }, []);
 
   // ─── Demo mode (for environments without wallet extensions) ─
   const connectDemo = useCallback(() => {
