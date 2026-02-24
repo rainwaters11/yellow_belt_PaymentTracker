@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Heart } from 'lucide-react';
+import HeartLock from './HeartLock';
 import './CoupleSync.css';
 
 // ─── Contract config ────────────────────────────────────────────
@@ -166,7 +166,7 @@ export default function CoupleSync() {
 
       <header className="app-header">
         <div className="logo">
-          <Heart className="logo-heart" size={36} fill="var(--accent-pink)" color="var(--accent-pink)" />
+          <HeartLock synced={syncStatus === 'synced' && partnerSynced} size={40} className="logo-heart" />
           <h1>Couple Sync Vault</h1>
         </div>
         <p className="subtitle">Link your Stellar wallets together on the blockchain</p>
@@ -377,7 +377,7 @@ export default function CoupleSync() {
       )}
 
       <footer className="app-footer">
-        <p>Built with <Heart size={14} fill="var(--accent-pink)" color="var(--accent-pink)" style={{ display: 'inline', verticalAlign: 'middle' }} /> on <a href="https://stellar.org" target="_blank" rel="noopener noreferrer">Stellar</a> · Soroban Smart Contracts</p>
+        <p>Built with <HeartLock synced={syncStatus === 'synced' && partnerSynced} size={16} /> on <a href="https://stellar.org" target="_blank" rel="noopener noreferrer">Stellar</a> · Soroban Smart Contracts</p>
       </footer>
     </div>
   );

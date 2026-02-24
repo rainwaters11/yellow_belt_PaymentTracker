@@ -142,8 +142,12 @@ body {
 }
 
 .logo-heart {
+  transition: filter 0.3s ease, transform 0.3s ease;
+}
+
+.logo-heart.heart-lock--synced {
   animation: heartbeat 2s infinite;
-  filter: drop-shadow(0 0 8px var(--accent-pink));
+  filter: drop-shadow(0 0 12px rgba(236, 72, 153, 0.7));
 }
 
 .logo h1 {
