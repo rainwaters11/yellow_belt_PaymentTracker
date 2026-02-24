@@ -17,10 +17,10 @@ import freighterApi from '@stellar/freighter-api';
 import * as StellarSdk from '@stellar/stellar-sdk';
 
 // ─── Contract config ────────────────────────────────────────────
-const CONTRACT_ID = 'CBTWI3DMBN4P3XVEUPKSVOSRYH6NFKYZ3RFKWA54YGBTEOA4YSO7VLOW';
-const NETWORK = 'TESTNET';
-const HORIZON_URL = 'https://horizon-testnet.stellar.org';
-const SOROBAN_URL = 'https://soroban-testnet.stellar.org';
+const CONTRACT_ID = import.meta.env.PUBLIC_CONTRACT_ID || 'CBTWI3DMBN4P3XVEUPKSVOSRYH6NFKYZ3RFKWA54YGBTEOA4YSO7VLOW';
+const NETWORK = import.meta.env.PUBLIC_NETWORK || 'TESTNET';
+const HORIZON_URL = import.meta.env.PUBLIC_HORIZON_URL || 'https://horizon-testnet.stellar.org';
+const SOROBAN_URL = import.meta.env.PUBLIC_SOROBAN_URL || 'https://soroban-testnet.stellar.org';
 
 // Supported Stellar network passphrases
 const NETWORKS: Record<string, string> = {

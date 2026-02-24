@@ -4,12 +4,15 @@ import react from '@astrojs/react';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+import vercel from '@astrojs/vercel';
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const swkBase = path.resolve(__dirname, 'node_modules/@creit.tech/stellar-wallets-kit/esm/sdk/modules');
 
 // https://astro.build/config
 export default defineConfig({
   integrations: [react()],
+
   vite: {
     resolve: {
       alias: {
@@ -35,4 +38,7 @@ export default defineConfig({
       },
     },
   },
+
+  output: 'server',
+  adapter: vercel(),
 });
