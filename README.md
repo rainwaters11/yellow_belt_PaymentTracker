@@ -19,6 +19,17 @@
 To satisfy the Level 2 requirement for real-time data synchronization:
 - The dApp uses a `useEffect` hook to subscribe to contract events via the Stellar SDK.
 - When the `SyncSuccessful` event is emitted by the Soroban contract, the frontend triggers a "Heartbeat" pulse animation on the logo without a page refresh.
+
+### 🚀 Level 3 Features Added (Orange Belt)
+- **On-chain partner linking**
+- **Real-time loading indicators**
+- **Local address caching**
+
+### 🧪 Test Results
+![Orange Belt Tests](screenshots/orange-belt-tests.png)
+
+### 🎥 Demo Video
+[Watch the 1-minute demo video here](YOUR_DEMO_VIDEO_LINK)
 ---
 
 ## Wallet Options
