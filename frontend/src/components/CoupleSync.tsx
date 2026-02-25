@@ -38,12 +38,7 @@ type ErrorType = 'wallet_not_found' | 'user_rejected' | 'insufficient_funds' | '
 export default function CoupleSync() {
   const [walletStatus, setWalletStatus] = useState<WalletStatus>('disconnected');
   const [publicKey, setPublicKey] = useState<string>('');
-  const [partnerAddress, setPartnerAddress] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('partnerAddress') || '';
-    }
-    return '';
-  });
+  const [partnerAddress, setPartnerAddress] = useState<string>('');
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
   const [syncMessage, setSyncMessage] = useState<string>('');
   const [errorType, setErrorType] = useState<ErrorType>(null);
@@ -117,6 +112,25 @@ export default function CoupleSync() {
       if (intervalId) clearInterval(intervalId);
     };
   }, [walletStatus, publicKey, hasFunds]);
+
+  // ─── Local Storage Initialization & Sync ────────────────────
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('partnerAddress');
+      if (saved && !partnerAddress) {
+        setPartnerAddress(saved);
+      }
+    }
+  }, []); // Run once on mount to populate
+
+  useEffect(() => {
+    // Whenever a partner is successfully synced, ensure we record it
+    if (syncStatus === 'synced' && partnerSynced && partnerAddress) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('partnerAddress', partnerAddress);
+      }
+    }
+  }, [syncStatus, partnerSynced, partnerAddress]);
 
   // ─── Wallet Connection via StellarWalletsKit + freighter-api ──
   const connectWallet = useCallback(async (walletId: string) => {
