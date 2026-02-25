@@ -29,7 +29,7 @@ To satisfy the Level 2 requirement for real-time data synchronization:
 ![Orange Belt Tests](screenshots/orange-belt-tests.png)
 
 ### 🎥 Demo Video
-[Watch the 1-minute demo video here](YOUR_DEMO_VIDEO_LINK)
+[Watch the 1-minute demo video here](https://www.youtube.com/watch?v=I0IcRBxjFiA)
 ---
 
 ## Wallet Options
