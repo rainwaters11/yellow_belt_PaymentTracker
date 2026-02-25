@@ -117,11 +117,21 @@ export default function CoupleSync() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('partnerAddress');
-      if (saved && !partnerAddress) {
+      if (saved) {
         setPartnerAddress(saved);
+        console.log('Loaded from storage on mount:', saved);
       }
     }
   }, []); // Run once on mount to populate
+
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setPartnerAddress(val);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('partnerAddress', val);
+      console.log('Saved to storage:', val);
+    }
+  };
 
   useEffect(() => {
     // Whenever a partner is successfully synced, ensure we record it
@@ -238,6 +248,11 @@ export default function CoupleSync() {
 
   // ─── Link Partners ─────────────────────────────────────────
   const linkPartner = useCallback(async () => {
+    if (typeof window !== 'undefined' && partnerAddress) {
+      localStorage.setItem('partnerAddress', partnerAddress);
+      console.log('Saved to storage:', partnerAddress);
+    }
+
     if (!partnerAddress || partnerAddress.length !== 56 || !partnerAddress.startsWith('G')) {
       setErrorType('generic');
       setErrorMessage('Please enter a valid Stellar public key (starts with G, 56 characters).');
@@ -580,7 +595,7 @@ export default function CoupleSync() {
                         type="text"
                         placeholder="Partner's Stellar address (G...)"
                         value={partnerAddress}
-                        onChange={(e) => setPartnerAddress(e.target.value)}
+                        onChange={handleAddressChange}
                         className="input"
                         maxLength={56}
                       />
