@@ -36,6 +36,10 @@ type SyncStatus = 'idle' | 'linking' | 'synced' | 'error';
 type ErrorType = 'wallet_not_found' | 'user_rejected' | 'insufficient_funds' | 'generic' | null;
 
 export default function CoupleSync() {
+  if (typeof window !== 'undefined') {
+    console.log("Local Storage Check (on render):", localStorage.getItem("partnerAddress"));
+  }
+
   const [walletStatus, setWalletStatus] = useState<WalletStatus>('disconnected');
   const [publicKey, setPublicKey] = useState<string>('');
   const [partnerAddress, setPartnerAddress] = useState<string>('');
