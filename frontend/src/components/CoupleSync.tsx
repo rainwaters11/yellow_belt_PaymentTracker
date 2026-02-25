@@ -133,7 +133,7 @@ export default function CoupleSync() {
     setPartnerAddress(val);
     if (typeof window !== 'undefined') {
       localStorage.setItem('partnerAddress', val);
-      console.log('Saved to storage:', val);
+      console.log('Saved to storage (onChange):', val);
     }
   };
 
@@ -142,6 +142,7 @@ export default function CoupleSync() {
     if (syncStatus === 'synced' && partnerSynced && partnerAddress) {
       if (typeof window !== 'undefined') {
         localStorage.setItem('partnerAddress', partnerAddress);
+        console.log('Saved to storage (on sync):', partnerAddress);
       }
     }
   }, [syncStatus, partnerSynced, partnerAddress]);
@@ -252,9 +253,9 @@ export default function CoupleSync() {
 
   // ─── Link Partners ─────────────────────────────────────────
   const linkPartner = useCallback(async () => {
-    if (typeof window !== 'undefined' && partnerAddress) {
+    if (typeof window !== 'undefined') {
       localStorage.setItem('partnerAddress', partnerAddress);
-      console.log('Saved to storage:', partnerAddress);
+      console.log('Saved to storage (Link Partner):', partnerAddress);
     }
 
     if (!partnerAddress || partnerAddress.length !== 56 || !partnerAddress.startsWith('G')) {
