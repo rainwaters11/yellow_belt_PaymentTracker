@@ -38,8 +38,14 @@ type ErrorType = 'wallet_not_found' | 'user_rejected' | 'insufficient_funds' | '
 export default function CoupleSync() {
   const [walletStatus, setWalletStatus] = useState<WalletStatus>('disconnected');
   const [publicKey, setPublicKey] = useState<string>('');
-  const [partnerAddress, setPartnerAddress] = useState<string>('');
+  const [partnerAddress, setPartnerAddress] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('partnerAddress') || '';
+    }
+    return '';
+  });
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
+  const [syncMessage, setSyncMessage] = useState<string>('');
   const [errorType, setErrorType] = useState<ErrorType>(null);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [showWalletModal, setShowWalletModal] = useState(false);
@@ -227,6 +233,7 @@ export default function CoupleSync() {
     setErrorType(null);
     setErrorMessage('');
     setSyncStatus('linking');
+    setSyncMessage('Checking account balance...');
 
     try {
       // 1. Simulate balance check for insufficient funds error
@@ -260,6 +267,7 @@ export default function CoupleSync() {
 
       if (walletStatus === 'connected' && publicKey && !publicKey.startsWith('GDEMO')) {
         // 2. Build Transaction
+        setSyncMessage('Building transaction...');
         console.log('[CoupleSync] Building transaction...');
         const server = new StellarSdk.rpc.Server(SOROBAN_URL);
         const sourceAccount = await server.getAccount(publicKey);
@@ -288,6 +296,7 @@ export default function CoupleSync() {
         const assembledTxXdr = assembledTx.build().toXDR();
 
         // 4. Sign Transaction (Triggers Freighter/xBull popup)
+        setSyncMessage('Awaiting wallet signature...');
         console.log('[CoupleSync] Requesting signature...');
         let signedXdr: string;
         try {
@@ -311,6 +320,7 @@ export default function CoupleSync() {
         }
 
         // 5. Submit Transaction
+        setSyncMessage('Broadcasting to Stellar...');
         console.log('[CoupleSync] Submitting transaction...');
         const submitResponse = await server.sendTransaction(StellarSdk.TransactionBuilder.fromXDR(signedXdr as string, NETWORK_PASSPHRASE) as any);
         if (submitResponse.status === 'ERROR' || (submitResponse as any).errorResult) {
@@ -327,6 +337,9 @@ export default function CoupleSync() {
       setTxHash(txHash);
       setSyncStatus('synced');
       setPartnerSynced(true);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('partnerAddress', partnerAddress);
+      }
     } catch (e: any) {
       console.error('[CoupleSync] Transaction error:', e);
       const msg = (e?.message || e?.toString() || '').toLowerCase();
@@ -561,12 +574,16 @@ export default function CoupleSync() {
                         className="btn btn-primary"
                         onClick={linkPartner}
                         disabled={syncStatus === 'linking'}
+                        style={{ height: syncStatus === 'linking' ? 'auto' : undefined, padding: syncStatus === 'linking' ? '8px 16px' : undefined }}
                       >
                         {syncStatus === 'linking' ? (
-                          <>
-                            <div className="spinner spinner-sm" />
-                            Syncing Partners...
-                          </>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: '1.2' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <div className="spinner spinner-sm" />
+                              <span>Syncing...</span>
+                            </div>
+                            <span style={{ fontSize: '0.75rem', opacity: 0.8, marginTop: '4px' }}>{syncMessage}</span>
+                          </div>
                         ) : (
                           '💜 Link Partner'
                         )}
