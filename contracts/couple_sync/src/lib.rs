@@ -17,9 +17,15 @@ impl CoupleSync {
     pub fn link_partners(env: Env, caller: Address, partner: Address) {
         caller.require_auth();
 
+        // 1) Ensure the caller isn't already linked to someone else
+        let key = DataKey::Partner(caller.clone());
+        if env.storage().instance().has(&key) {
+            panic!("already linked to a partner");
+        }
+
         env.storage()
             .instance()
-            .set(&DataKey::Partner(caller.clone()), &partner);
+            .set(&key, &partner);
 
         // Extend the TTL so storage doesn't expire quickly on testnet
         env.storage().instance().extend_ttl(5000, 10000);
