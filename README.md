@@ -133,6 +133,15 @@ https://yellow-belt-payment-tracker.vercel.app/
 
 ---
 
+## Orange Belt Deliverables
+
+- [x] **Mini-dApp functional** (connects wallet, signs tx, records on-chain)
+- [x] **3+ tests passing** (Init, Double Sync Rejection, Link Success)
+- [x] **README complete** (Features, screenshot, Vercel link included)
+- [x] **Demo video recorded** (Link added to Demo Video section)
+
+---
+
 ## License
 
 MIT
