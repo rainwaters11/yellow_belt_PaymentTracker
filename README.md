@@ -46,6 +46,21 @@ The "Select Wallet" modal provides users with a choice of Stellar wallets:
 
 ---
 
+## SYNC Token (SEP-41)
+
+Token metadata:
+- Name: `SYNC`
+- Symbol: `SYNC`
+- Decimals: `7`
+
+Token Contract Address (Testnet):
+
+```text
+CCX5SYNC2M4M23R5TOKENADDRREPLACEWITHDEPLOYEDVALUE7GJQ
+```
+
+> Replace the placeholder above with your deployed SYNC token contract address from `stellar contract deploy`.
+
 ## Contract ID
 
 ```text
