@@ -1,8 +1,53 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import CoupleSync from '../components/CoupleSync';
+import GoalsDashboard from '../components/GoalsDashboard';
 ---
 
 <Layout>
-	<CoupleSync client:only="react" />
+	<main>
+		<nav class="top-nav" aria-label="Main navigation">
+			<a href="#sync">Couple Sync</a>
+			<a href="#goals">Goals Dashboard</a>
+		</nav>
+
+		<section id="sync">
+			<CoupleSync client:only="react" />
+		</section>
+
+		<section id="goals">
+			<GoalsDashboard client:load />
+		</section>
+	</main>
 </Layout>
+
+<style>
+	main {
+		max-width: 980px;
+		margin: 0 auto;
+		padding: 1rem;
+	}
+
+	.top-nav {
+		display: flex;
+		gap: 1rem;
+		justify-content: center;
+		padding: 0.75rem 0;
+		margin-bottom: 1rem;
+		position: sticky;
+		top: 0;
+		background: rgba(10, 10, 26, 0.95);
+		backdrop-filter: blur(6px);
+		z-index: 2;
+	}
+
+	.top-nav a {
+		color: #d1d5ff;
+		text-decoration: none;
+		font-weight: 600;
+	}
+
+	#goals {
+		margin-top: 1rem;
+	}
+</style>
