@@ -125,6 +125,30 @@ Open [http://localhost:4321](http://localhost:4321) in your browser.
 
 ---
 
+
+## Level 4: Inter-Contract Call Engine
+
+The `goals_vault` contract now invokes the `sync_token` contract when a goal is completed:
+
+- `goals_vault::complete_goal(user, goal_id, reward_amount)`
+- performs a cross-contract call to `sync_token::mint(user, reward_amount)`
+
+Contract paths:
+- `contracts/goals_vault/src/lib.rs`
+- `contracts/sync_token/src/lib.rs`
+
+### Cross-Contract Invocation Proof (Stellar Expert)
+
+Transaction Hash:
+
+```text
+49329072fbe1ab7dde5d49888de58e168fdb75c453ffa3a90560e4044d4bcb44
+```
+
+Verification link (check **Operations → Invoke Host Function**):
+
+- https://stellar.expert/explorer/testnet/tx/49329072fbe1ab7dde5d49888de58e168fdb75c453ffa3a90560e4044d4bcb44
+
 ## Vercel Link
 
 ```text
