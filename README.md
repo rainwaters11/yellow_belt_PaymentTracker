@@ -1,4 +1,8 @@
+[![Build: Passing](https://github.com/<OWNER>/<REPO>/actions/workflows/ci.yml/badge.svg)](https://github.com/<OWNER>/<REPO>/actions/workflows/ci.yml)
+
 # Couple Sync
+
+> ⚠️ Update `<OWNER>` and `<REPO>` in the badge URL above to your GitHub org/user and repository name so the live Actions status appears.
 
 > Link your Stellar wallets together on the blockchain.  
 > A **Soroban** smart contract dApp for the Stellar Yellow Belt — Level 2.
