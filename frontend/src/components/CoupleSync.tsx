@@ -447,6 +447,10 @@ export default function CoupleSync() {
               <h1>Couple Sync Vault</h1>
             </div>
             <p className="subtitle">Link your Stellar wallets together on the blockchain</p>
+            <nav className="header-nav" aria-label="Primary">
+              <a href="#sync">Home</a>
+              <a href="#goals">Goals</a>
+            </nav>
             <span className="network-badge">Testnet</span>
           </header>
 
