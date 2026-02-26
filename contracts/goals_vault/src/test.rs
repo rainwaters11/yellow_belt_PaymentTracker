@@ -4,7 +4,7 @@ use super::*;
 use soroban_sdk::{testutils::Address as _, Address, Env};
 
 #[test]
-fn test_complete_goal_mints_sync_token() {
+fn test_requires_both_partner_approvals_before_mint() {
     let env = Env::default();
     env.mock_all_auths();
 
@@ -14,31 +14,63 @@ fn test_complete_goal_mints_sync_token() {
     let vault_id = env.register(GoalsVault, ());
     let vault = GoalsVaultClient::new(&env, &vault_id);
 
+    let alice = Address::generate(&env);
+    let bob = Address::generate(&env);
+
     vault.init(&token_id);
+    vault.create_goal(&1, &alice, &bob, &50, &0);
 
-    let user = Address::generate(&env);
-    assert_eq!(token_client.balance(&user), 0);
+    vault.approve_goal(&alice, &1);
+    assert!(vault.is_goal_approved_by(&1, &alice));
+    assert!(!vault.is_goal_approved_by(&1, &bob));
+    assert!(!vault.is_goal_complete(&1));
+    assert_eq!(token_client.balance(&alice), 0);
+    assert_eq!(token_client.balance(&bob), 0);
 
-    vault.complete_goal(&user, &1, &50);
-
-    assert!(vault.is_goal_complete(&user, &1));
-    assert_eq!(token_client.balance(&user), 50);
+    vault.approve_goal(&bob, &1);
+    assert!(vault.is_goal_complete(&1));
+    assert_eq!(token_client.balance(&alice), 50);
+    assert_eq!(token_client.balance(&bob), 50);
 }
 
 #[test]
 #[should_panic]
-fn test_cannot_complete_same_goal_twice() {
+fn test_timelock_blocks_early_approval() {
     let env = Env::default();
     env.mock_all_auths();
 
     let token_id = env.register(SyncTokenForTest, ());
     let vault_id = env.register(GoalsVault, ());
     let vault = GoalsVaultClient::new(&env, &vault_id);
-    let user = Address::generate(&env);
+    let alice = Address::generate(&env);
+    let bob = Address::generate(&env);
 
     vault.init(&token_id);
-    vault.complete_goal(&user, &7, &10);
-    vault.complete_goal(&user, &7, &10);
+    vault.create_goal(&7, &alice, &bob, &10, &1);
+
+    // Default test ledger timestamp starts at 0, so goal is still locked.
+    vault.approve_goal(&alice, &7);
+}
+
+#[test]
+#[should_panic]
+fn test_cannot_approve_completed_goal_again() {
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let token_id = env.register(SyncTokenForTest, ());
+    let vault_id = env.register(GoalsVault, ());
+    let vault = GoalsVaultClient::new(&env, &vault_id);
+    let alice = Address::generate(&env);
+    let bob = Address::generate(&env);
+
+    vault.init(&token_id);
+    vault.create_goal(&11, &alice, &bob, &25, &0);
+    vault.approve_goal(&alice, &11);
+    vault.approve_goal(&bob, &11);
+
+    // Goal already minted/completed; any new approval should fail.
+    vault.approve_goal(&alice, &11);
 }
 
 #[cfg(test)]

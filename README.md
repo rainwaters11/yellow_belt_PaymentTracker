@@ -145,6 +145,19 @@ Open [http://localhost:4321](http://localhost:4321) in your browser.
 ---
 
 
+## Level 4 Security: Multi-Sig + Time-Lock
+
+`goals_vault` now enforces both security rules before reward minting:
+
+- **Time-Lock**: each goal includes an `unlock_timestamp`; approvals before this timestamp are rejected.
+- **Multi-Sig**: both partners must approve the same goal before SYNC tokens are minted.
+
+Key methods in `contracts/goals_vault/src/lib.rs`:
+- `create_goal(goal_id, partner_a, partner_b, reward_amount, unlock_timestamp)`
+- `approve_goal(approver, goal_id)`
+- `is_goal_approved_by(goal_id, user)`
+- `is_goal_complete(goal_id)`
+
 ## Level 4: Inter-Contract Call Engine
 
 The `goals_vault` contract now invokes the `sync_token` contract when a goal is completed:
