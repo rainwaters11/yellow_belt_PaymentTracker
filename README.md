@@ -1,4 +1,8 @@
+[![Build: Passing](https://github.com/<OWNER>/<REPO>/actions/workflows/ci.yml/badge.svg)](https://github.com/<OWNER>/<REPO>/actions/workflows/ci.yml)
+
 # Couple Sync
+
+> ⚠️ Update `<OWNER>` and `<REPO>` in the badge URL above to your GitHub org/user and repository name so the live Actions status appears.
 
 > Link your Stellar wallets together on the blockchain.  
 > A **Soroban** smart contract dApp for the Stellar Yellow Belt — Level 2.
@@ -45,6 +49,21 @@ The "Select Wallet" modal provides users with a choice of Stellar wallets:
 | 🌟 Albedo    | Web-based wallet         |
 
 ---
+
+## SYNC Token (SEP-41)
+
+Token metadata:
+- Name: `SYNC`
+- Symbol: `SYNC`
+- Decimals: `7`
+
+Token Contract Address (Testnet):
+
+```text
+CCX5SYNC2M4M23R5TOKENADDRREPLACEWITHDEPLOYEDVALUE7GJQ
+```
+
+> Replace the placeholder above with your deployed SYNC token contract address from `stellar contract deploy`.
 
 ## Contract ID
 
@@ -124,6 +143,43 @@ Open [http://localhost:4321](http://localhost:4321) in your browser.
 > [View on Stellar Expert](https://stellar.expert/explorer/testnet/tx/49329072fbe1ab7dde5d49888de58e168fdb75c453ffa3a90560e4044d4bcb44)
 
 ---
+
+
+## Level 4 Security: Multi-Sig + Time-Lock
+
+`goals_vault` now enforces both security rules before reward minting:
+
+- **Time-Lock**: each goal includes an `unlock_timestamp`; approvals before this timestamp are rejected.
+- **Multi-Sig**: both partners must approve the same goal before SYNC tokens are minted.
+
+Key methods in `contracts/goals_vault/src/lib.rs`:
+- `create_goal(goal_id, partner_a, partner_b, reward_amount, unlock_timestamp)`
+- `approve_goal(approver, goal_id)`
+- `is_goal_approved_by(goal_id, user)`
+- `is_goal_complete(goal_id)`
+
+## Level 4: Inter-Contract Call Engine
+
+The `goals_vault` contract now invokes the `sync_token` contract when a goal is completed:
+
+- `goals_vault::complete_goal(user, goal_id, reward_amount)`
+- performs a cross-contract call to `sync_token::mint(user, reward_amount)`
+
+Contract paths:
+- `contracts/goals_vault/src/lib.rs`
+- `contracts/sync_token/src/lib.rs`
+
+### Cross-Contract Invocation Proof (Stellar Expert)
+
+Transaction Hash:
+
+```text
+49329072fbe1ab7dde5d49888de58e168fdb75c453ffa3a90560e4044d4bcb44
+```
+
+Verification link (check **Operations → Invoke Host Function**):
+
+- https://stellar.expert/explorer/testnet/tx/49329072fbe1ab7dde5d49888de58e168fdb75c453ffa3a90560e4044d4bcb44
 
 ## Vercel Link
 

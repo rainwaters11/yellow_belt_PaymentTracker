@@ -1,0 +1,145 @@
+.goals-dashboard {
+  background: linear-gradient(180deg, #15153a 0%, #101028 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 1rem;
+  color: #f1f5ff;
+}
+
+.goals-dashboard__header h2 {
+  margin: 0;
+}
+
+.goals-dashboard__header p {
+  margin-top: 0.35rem;
+  color: #b7bedf;
+}
+
+.goals-dashboard__warning {
+  margin: 0.75rem 0;
+  border: 1px solid #d9a441;
+  color: #ffdba0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  background: rgba(217, 164, 65, 0.1);
+}
+
+.goals-dashboard__summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.goals-dashboard__summary > div {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  padding: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.goals-dashboard__summary span {
+  color: #b7bedf;
+  font-size: 0.85rem;
+}
+
+.goals-dashboard__summary strong {
+  font-size: 1.2rem;
+}
+
+.goals-dashboard__actions {
+  margin-bottom: 1rem;
+}
+
+.goals-dashboard__wallet {
+  margin: 0;
+  color: #a3f7d2;
+  font-size: 0.9rem;
+}
+
+.goals-dashboard__form {
+  display: grid;
+  gap: 0.65rem;
+  margin-bottom: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  padding: 0.75rem;
+}
+
+.goals-dashboard__form h3 {
+  margin: 0 0 0.35rem 0;
+}
+
+.goals-dashboard__form label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.goals-dashboard__form input {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(0, 0, 0, 0.2);
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+}
+
+.goals-dashboard__btn {
+  background: linear-gradient(90deg, #7b9cff 0%, #8ef3d6 100%);
+  color: #111;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.goals-dashboard__btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.goals-dashboard__btn--small {
+  padding: 0.45rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.goals-dashboard__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.goals-dashboard__item {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  padding: 0.7rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.goals-dashboard__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.goals-dashboard__row--actions {
+  align-items: center;
+}
+
+.goals-dashboard__row--actions a {
+  color: #8ef3d6;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.goals-dashboard__status {
+  margin-top: 0.9rem;
+  color: #b7bedf;
+  font-size: 0.9rem;
+}
