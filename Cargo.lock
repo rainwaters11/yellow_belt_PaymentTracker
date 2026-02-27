@@ -651,6 +651,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "goals_vault"
+version = "0.0.0"
+dependencies = [
+ "soroban-sdk",
+]
+
+[[package]]
 name = "group"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1541,6 +1548,13 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "sync_token"
+version = "0.0.0"
+dependencies = [
+ "soroban-sdk",
 ]
 
 [[package]]
