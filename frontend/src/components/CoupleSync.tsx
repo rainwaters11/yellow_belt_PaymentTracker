@@ -1,7 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import HeartLock from './HeartLock';
 import WelcomeCard from './WelcomeCard';
-import OnboardingChecklist from './OnboardingChecklist';
 import './CoupleSync.css';
 import { StellarWalletsKit } from '@creit.tech/stellar-wallets-kit';
 // @ts-ignore — resolved via Vite aliases in astro.config.mjs
@@ -383,12 +382,6 @@ export default function CoupleSync() {
         <WelcomeCard onStart={() => setHasStarted(true)} />
       ) : (
         <>
-          <OnboardingChecklist
-            walletConnected={walletStatus === 'connected'}
-            hasFunds={hasFunds || publicKey.startsWith('GDEMO')}
-            partnerLinked={syncStatus === 'synced' && partnerSynced}
-          />
-
           <header className="app-header">
             <div className="logo">
               <HeartLock
@@ -404,6 +397,31 @@ export default function CoupleSync() {
           </header>
 
           <main className="main-card">
+            {/* ─── Inline Progress Bar ─── */}
+            {syncStatus !== 'synced' && (() => {
+              const isFunded = hasFunds || publicKey.startsWith('GDEMO');
+              const connectClass = walletStatus === 'connected' ? 'done' : walletStatus === 'connecting' ? 'active' : '';
+              const fundClass = isFunded && walletStatus === 'connected' ? 'done' : walletStatus === 'connected' && !isFunded ? 'active' : '';
+              const syncClass = syncStatus === 'linking' ? 'active' : '';
+              return (
+                <div className="progress-steps">
+                  <div className={`progress-step ${connectClass}`}>
+                    <span className="progress-step-dot">{walletStatus === 'connected' ? '✓' : '1'}</span>
+                    <span>Connect</span>
+                  </div>
+                  <div className="progress-step-line" />
+                  <div className={`progress-step ${fundClass}`}>
+                    <span className="progress-step-dot">{isFunded ? '✓' : '2'}</span>
+                    <span>Fund</span>
+                  </div>
+                  <div className="progress-step-line" />
+                  <div className={`progress-step ${syncClass}`}>
+                    <span className="progress-step-dot">3</span>
+                    <span>Sync</span>
+                  </div>
+                </div>
+              );
+            })()}
             {/* ─── Sync Success Screen ─── */}
             {syncStatus === 'synced' && partnerSynced && (
               <div className="sync-success">

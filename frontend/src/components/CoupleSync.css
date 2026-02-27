@@ -866,129 +866,275 @@ body {
   }
 }
 
-/* ─── Welcome Card Styles ─── */
-.welcome-card {
+/* ─── Welcome Screen ─── */
+.welcome-screen {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 3rem 2rem;
-  text-align: center;
-  background: rgba(17, 24, 39, 0.4);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-  margin-top: 2rem;
-  animation: slideUp 0.5s ease-out;
-  max-width: 520px;
+  gap: 2rem;
   width: 100%;
+  max-width: 760px;
+  padding: 1rem 0 2rem;
+  animation: fadeInUp 0.5s ease-out;
 }
 
-.welcome-icon {
-  font-size: 4rem;
-  margin-bottom: 1.5rem;
-  animation: pulse 2s infinite ease-in-out;
+/* Hero */
+.welcome-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.85rem;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  background: rgba(20, 20, 50, 0.55);
+  border: 1px solid rgba(139, 92, 246, 0.18);
+  border-radius: 24px;
+  backdrop-filter: blur(20px);
 }
 
-.welcome-card h2 {
-  font-size: 2rem;
-  background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+.welcome-badge {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 0.3rem 1rem;
+  border-radius: 999px;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: var(--primary-light);
+  text-transform: uppercase;
+}
+
+.welcome-logo-wrap {
+  margin: 0.5rem 0;
+  filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.4));
+  animation: heartbeat 3s infinite 1s;
+}
+
+.welcome-title {
+  font-size: 2.75rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #c4b5fd, #f472b6 60%, #fb7185);
   -webkit-background-clip: text;
-  background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin-bottom: 1rem;
+  background-clip: text;
+  line-height: 1.1;
+  margin: 0;
 }
 
-.welcome-card p {
-  color: #9ca3af;
+.welcome-tagline {
+  color: var(--text-muted);
   font-size: 1.1rem;
-  line-height: 1.6;
-  max-width: 400px;
-  margin: 0 auto 2rem;
+  font-weight: 300;
+  line-height: 1.65;
+  max-width: 440px;
+  margin: 0;
 }
 
-.welcome-btn {
-  padding: 1rem 3rem;
-  font-size: 1.2rem;
+.welcome-tagline em {
+  font-style: italic;
+  color: var(--primary-light);
+}
+
+.welcome-cta {
+  margin-top: 0.5rem;
+  padding: 0.9rem 2.5rem;
+  font-size: 1.05rem;
   border-radius: 12px;
 }
 
-/* ─── Onboarding Checklist Styles ─── */
-.onboarding-checklist {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: rgba(17, 24, 39, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 1rem;
-  width: 250px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  z-index: 10;
-  animation: fadeInDown 0.4s ease-out;
-}
-
-.checklist-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.checklist-header h4 {
-  font-size: 0.95rem;
-  font-weight: 600;
-  margin: 0;
-  color: #fff;
-}
-
-.checklist-close {
-  background: none;
-  border: none;
+.welcome-hint {
+  font-size: 0.8rem;
   color: var(--text-dim);
-  cursor: pointer;
-  font-size: 0.9rem;
-  padding: 0.2rem;
-  transition: color 0.2s;
-}
-
-.checklist-close:hover {
-  color: #fff;
-}
-
-.checklist-items {
-  list-style: none;
-  padding: 0;
   margin: 0;
+}
+
+/* Features */
+.welcome-features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  width: 100%;
+}
+
+.feature-card {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  padding: 1.25rem;
+  background: rgba(20, 20, 50, 0.5);
+  border: 1px solid rgba(120, 100, 255, 0.12);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  transition: border-color var(--transition), background var(--transition);
 }
 
-.checklist-item {
+.feature-card:hover {
+  border-color: rgba(139, 92, 246, 0.3);
+  background: rgba(30, 30, 70, 0.6);
+}
+
+.feature-icon {
+  font-size: 1.75rem;
+}
+
+.feature-card strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.feature-card span {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+
+/* How it works */
+.welcome-how {
+  width: 100%;
+  text-align: center;
+}
+
+.welcome-how-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin-bottom: 1rem;
+}
+
+.welcome-steps-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  transition: color 0.3s;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
-.checklist-item.completed {
-  color: var(--success);
-  text-decoration: line-through;
-  opacity: 0.8;
+.welcome-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
 }
 
-.checkbox {
-  font-size: 1rem;
-  display: inline-flex;
+.welcome-step-num {
+  display: flex;
   align-items: center;
   justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--accent-pink));
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.welcome-step strong {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.welcome-step span {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.welcome-step-arrow {
+  font-size: 1.25rem;
+  color: var(--text-dim);
+  margin-bottom: 1.25rem;
+}
+
+/* ─── Inline Progress Steps ─── */
+.progress-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  transition: color var(--transition);
+}
+
+.progress-step.active {
+  color: var(--primary-light);
+}
+
+.progress-step.done {
+  color: var(--success);
+}
+
+.progress-step-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border: 2px solid currentColor;
+  background: transparent;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.progress-step.done .progress-step-dot {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: var(--success);
+}
+
+.progress-step.active .progress-step-dot {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: var(--primary-light);
+  animation: glow-pulse 1.5s infinite;
+}
+
+.progress-step-line {
+  flex: 1;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  min-width: 40px;
+  margin: 0 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* ─── Responsive welcome ─── */
+@media (max-width: 600px) {
+  .welcome-title {
+    font-size: 2rem;
+  }
+
+  .welcome-features {
+    grid-template-columns: 1fr;
+  }
+
+  .welcome-step-arrow {
+    transform: rotate(90deg);
+    margin-bottom: 0;
+  }
+
+  .welcome-steps-row {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .progress-step-line {
+    min-width: 24px;
+  }
 }
