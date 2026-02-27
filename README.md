@@ -120,7 +120,28 @@ stellar contract invoke \
 
 ---
 
-## Setup Instructions
+## 🚀 Quick Start (Test the dApp Right Now)
+
+```bash
+# 1. Install frontend dependencies
+cd frontend && npm install
+
+# 2. Copy environment file (already has the Level 2 contract ID pre-filled)
+cp .env.example .env
+
+# 3. Start the dev server
+npm run dev
+```
+
+Open **http://localhost:4321** — you'll see:
+- **💜 Couple Sync (L2)** tab → already deployed, works with Freighter right away
+- **🎯 Goals Vault (L4)** tab → runs in **Demo Mode** until you deploy the new contracts (see below)
+
+> **No Freighter?** Click "Try Demo Mode" on either page to test the full UI flow without a wallet extension.
+
+---
+
+## Full Setup Instructions
 
 ### Prerequisites
 

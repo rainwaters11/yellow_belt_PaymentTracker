@@ -1,3 +1,10 @@
+---
+interface Props {
+  title?: string;
+}
+const { title = 'Couple Sync Vault | Stellar Wallet Linking' } = Astro.props;
+const currentPath = Astro.url.pathname;
+---
 <!doctype html>
 <html lang="en">
 	<head>
@@ -7,9 +14,17 @@
 		<link rel="manifest" href="/manifest.json" />
 		<meta name="generator" content={Astro.generator} />
 		<meta name="description" content="Couple Sync Vault — Link your Stellar wallets together on the blockchain. A Soroban dApp for the Stellar Yellow Belt." />
-		<title>Couple Sync Vault | Stellar Wallet Linking</title>
+		<title>{title}</title>
 	</head>
 	<body>
+		<nav class="app-nav">
+			<a href="/" class:list={['nav-link', { active: currentPath === '/' }]}>
+				💜 Couple Sync <span class="nav-badge">L2</span>
+			</a>
+			<a href="/goals" class:list={['nav-link', { active: currentPath.startsWith('/goals') }]}>
+				🎯 Goals Vault <span class="nav-badge nav-badge-green">L4</span>
+			</a>
+		</nav>
 		<slot />
 	</body>
 </html>
@@ -21,5 +36,56 @@
 		width: 100%;
 		min-height: 100vh;
 		background: #0a0a1a;
+	}
+
+	.app-nav {
+		display: flex;
+		gap: 0.5rem;
+		padding: 0.75rem 1.25rem;
+		background: rgba(10, 10, 26, 0.9);
+		border-bottom: 1px solid rgba(120, 100, 255, 0.15);
+		backdrop-filter: blur(12px);
+		position: sticky;
+		top: 0;
+		z-index: 100;
+	}
+
+	.nav-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.4rem 1rem;
+		border-radius: 8px;
+		text-decoration: none;
+		font-family: 'Inter', -apple-system, sans-serif;
+		font-size: 0.875rem;
+		font-weight: 500;
+		color: rgba(241, 245, 249, 0.6);
+		transition: background 0.2s, color 0.2s;
+	}
+
+	.nav-link:hover {
+		background: rgba(120, 100, 255, 0.12);
+		color: #f1f5f9;
+	}
+
+	.nav-link.active {
+		background: rgba(139, 92, 246, 0.2);
+		color: #a78bfa;
+	}
+
+	.nav-badge {
+		font-size: 0.65rem;
+		font-weight: 700;
+		padding: 0.1rem 0.4rem;
+		border-radius: 999px;
+		background: rgba(139, 92, 246, 0.25);
+		color: #a78bfa;
+		letter-spacing: 0.02em;
+	}
+
+	.nav-badge-green {
+		background: rgba(16, 185, 129, 0.2);
+		color: #10b981;
 	}
 </style>
