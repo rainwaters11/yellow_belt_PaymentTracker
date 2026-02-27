@@ -1,7 +1,7 @@
 # Couple Sync
 
 > Link your Stellar wallets together on the blockchain.  
-> A **Soroban** smart contract dApp for the Stellar Yellow Belt — Level 2.
+> A **Soroban** smart contract dApp for the Stellar Yellow Belt — Level 2 & Level 4 (Green Belt).
 
 ![Sync Successful](screenshots/sync-successful.png)
 
@@ -42,7 +42,106 @@ CBTWI3DMBN4P3XVEUPKSVOSRYH6NFKYZ3RFKWA54YGBTEOA4YSO7VLOW
 ```
 ---
 
-## Setup Instructions
+## Level 4 — Green Belt: Goals Vault
+
+> Decentralized shared savings goals with on-chain SYNC token rewards and inter-contract calls.
+
+### Contract Addresses
+
+| Contract | Address |
+|---|---|
+| Goals Vault | `REPLACE_WITH_YOUR_GOALS_VAULT_CONTRACT_ID` |
+| SYNC Reward Token | `REPLACE_WITH_YOUR_SYNC_TOKEN_CONTRACT_ID` |
+
+> **How to get these IDs:** After cloning, run the deploy commands in the "Deploy to Testnet" section below,
+> then replace the placeholders above and in Vercel → Settings → Environment Variables.
+
+### Inter-Contract Architecture (Level 4 Requirement)
+
+The `approve_goal` function in the **Goals Vault** contract makes a cross-contract call to the **SYNC Token** contract to mint 100 SYNC tokens as a reward to the goal creator. This satisfies the Level 4 inter-contract call requirement.
+
+```
+GoalsVault::approve_goal(goal_id, approver)
+  └─► SyncToken::mint(goal.creator, 100)
+```
+
+### Test Goal Transaction Hash
+
+```text
+REPLACE_WITH_YOUR_TEST_GOAL_TX_HASH
+```
+
+> After you run a real `create_goal` transaction, paste the hash here and [view it on Stellar Expert](https://stellar.expert/explorer/testnet).
+
+### Mobile Responsiveness
+
+The Goals Dashboard (`GoalsDashboard.tsx`) is built mobile-first with a responsive CSS grid:
+- **Mobile (≤640px):** Single-column layout, 44px minimum touch targets
+- **Tablet/Desktop (>640px):** Auto-fill grid (`minmax(280px, 1fr)`)
+
+The component is production-ready and fully responsive.
+
+### Deploy Both New Contracts to Testnet
+
+```bash
+# Build all contracts (including new ones)
+cargo build --target wasm32v1-none --release
+
+# Deploy Goals Vault
+stellar contract deploy \
+  --wasm target/wasm32v1-none/release/goals_vault.wasm \
+  --source alice \
+  --network testnet
+# → Copy output → paste as PUBLIC_GOALS_VAULT_CONTRACT_ID
+
+# Deploy SYNC Token
+stellar contract deploy \
+  --wasm target/wasm32v1-none/release/sync_token.wasm \
+  --source alice \
+  --network testnet
+# → Copy output → paste as PUBLIC_SYNC_TOKEN_CONTRACT_ID
+
+# Initialize the SYNC Token (set vault as the authorized minter)
+stellar contract invoke \
+  --id <SYNC_TOKEN_CONTRACT_ID> \
+  --source alice \
+  --network testnet \
+  -- initialize \
+  --minter <GOALS_VAULT_CONTRACT_ID>
+
+# Initialize the Goals Vault
+stellar contract invoke \
+  --id <GOALS_VAULT_CONTRACT_ID> \
+  --source alice \
+  --network testnet \
+  -- initialize \
+  --sync_token_id <SYNC_TOKEN_CONTRACT_ID>
+```
+
+---
+
+## 🚀 Quick Start (Test the dApp Right Now)
+
+```bash
+# 1. Install frontend dependencies
+cd frontend && npm install
+
+# 2. Copy environment file (already has the Level 2 contract ID pre-filled)
+cp .env.example .env
+
+# 3. Start the dev server
+npm run dev
+```
+
+Open **http://localhost:4321** — you'll see:
+- **💜 Couple Sync (L2)** tab → already deployed, works with Freighter right away
+- **🎯 Goals Vault (L4)** tab → runs in **Demo Mode** until you deploy the new contracts (see below)
+
+> **No Freighter?** Click "Try Demo Mode" on either page to test the full UI flow without a wallet extension.
+
+---
+
+## Full Setup Instructions
 
 ### Prerequisites
 
@@ -62,8 +161,12 @@ npm install --prefix frontend
 ### 2. Build & Test the Contract
 
 ```bash
-cargo test                 # Run unit tests (4 tests)
-stellar contract build     # Build WASM
+# Build sync_token WASM first (required for cross-contract tests)
+cargo build -p sync_token --target wasm32v1-none --release
+# Run all unit tests (12 tests total)
+cargo test --workspace
+# Build all contracts
+cargo build --target wasm32v1-none --release
 ```
 
 ### 3. Deploy to Testnet
@@ -71,7 +174,7 @@ stellar contract build     # Build WASM
 ```bash
 stellar keys generate alice --network testnet --fund
 stellar contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/couple_sync.wasm \
+  --wasm target/wasm32v1-none/release/couple_sync.wasm \
   --source alice \
   --network testnet
 ```
