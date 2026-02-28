@@ -42,6 +42,47 @@ CBTWI3DMBN4P3XVEUPKSVOSRYH6NFKYZ3RFKWA54YGBTEOA4YSO7VLOW
 ```
 ---
 
+
+
+### Deploy Both New Contracts to Testnet
+
+```bash
+# Build all contracts (including new ones)
+cargo build --target wasm32v1-none --release
+
+# Deploy Goals Vault
+stellar contract deploy \
+  --wasm target/wasm32v1-none/release/goals_vault.wasm \
+  --source alice \
+  --network testnet
+# → Copy output → paste as PUBLIC_GOALS_VAULT_CONTRACT_ID
+
+# Deploy SYNC Token
+stellar contract deploy \
+  --wasm target/wasm32v1-none/release/sync_token.wasm \
+  --source alice \
+  --network testnet
+# → Copy output → paste as PUBLIC_SYNC_TOKEN_CONTRACT_ID
+
+# Initialize the SYNC Token (set vault as the authorized minter)
+stellar contract invoke \
+  --id <SYNC_TOKEN_CONTRACT_ID> \
+  --source alice \
+  --network testnet \
+  -- initialize \
+  --minter <GOALS_VAULT_CONTRACT_ID>
+
+# Initialize the Goals Vault
+stellar contract invoke \
+  --id <GOALS_VAULT_CONTRACT_ID> \
+  --source alice \
+  --network testnet \
+  -- initialize \
+  --sync_token_id <SYNC_TOKEN_CONTRACT_ID>
+```
+
+---
+
 ## Level 4 — Green Belt: Goals Vault
 
 > Decentralized shared savings goals with on-chain SYNC token rewards and inter-contract calls.
