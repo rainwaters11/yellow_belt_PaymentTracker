@@ -6,6 +6,7 @@ use soroban_sdk::{
 mod sync_token {
     soroban_sdk::contractimport!(
         file = "../../target/wasm32-unknown-unknown/release/sync_token.wasm"
+        file = "../../target/wasm32v1-none/release/sync_token.wasm"
     );
 }
 
