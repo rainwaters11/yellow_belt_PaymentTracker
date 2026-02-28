@@ -50,8 +50,8 @@ CBTWI3DMBN4P3XVEUPKSVOSRYH6NFKYZ3RFKWA54YGBTEOA4YSO7VLOW
 
 | Contract | Address |
 |---|---|
-| Goals Vault | `REPLACE_WITH_YOUR_GOALS_VAULT_CONTRACT_ID` |
-| SYNC Reward Token | `REPLACE_WITH_YOUR_SYNC_TOKEN_CONTRACT_ID` |
+| Goals Vault | `CC54JSOAXDFNCPYLNHDRB4KLMTPMAQ5ZNGS2KYFOP76O2WBSZMPBN4UI` |
+| SYNC Reward Token | `CDVFDOSHPQGBOAPGJ3FXNB4JGG3OI6S2DYFPPRBAUS7D6UQ7ZMYZC7GL` |
 
 > **How to get these IDs:** After cloning, run the deploy commands in the "Deploy to Testnet" section below,
 > then replace the placeholders above and in Vercel → Settings → Environment Variables.
