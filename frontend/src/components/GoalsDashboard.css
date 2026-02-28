@@ -2,20 +2,30 @@
 
 /* ─── Goals Dashboard Variables ────────────────────────────── */
 :root {
-  --goal-card-bg: rgba(20, 20, 50, 0.6);
-  --goal-card-border: rgba(120, 100, 255, 0.15);
+  --goal-card-bg: rgba(35, 35, 71, 0.92); /* lighter, more opaque */
+  --goal-card-border: rgba(120, 100, 255, 0.35);
   --goal-card-radius: 16px;
-  --badge-approved-bg: rgba(16, 185, 129, 0.15);
-  --badge-approved-color: #10b981;
-  --badge-pending-bg: rgba(245, 158, 11, 0.15);
-  --badge-pending-color: #f59e0b;
+  --badge-approved-bg: rgba(16, 185, 129, 0.22);
+  --badge-approved-color: #34ffb6;
+  --badge-pending-bg: rgba(245, 158, 11, 0.22);
+  --badge-pending-color: #ffe066;
   --config-warning-bg: rgba(245, 158, 11, 0.18);
   --config-warning-border: rgba(245, 158, 11, 0.4);
-  --config-warning-color: #f5c842;
-  --btn-approve-bg: rgba(16, 185, 129, 0.2);
-  --btn-approve-color: #10b981;
-  --btn-approve-border: rgba(16, 185, 129, 0.4);
-  --btn-approve-hover-bg: rgba(16, 185, 129, 0.35);
+  --config-warning-color: #fffbe6;
+  --btn-approve-bg: #10b981;
+  --btn-approve-color: #181825;
+  --btn-approve-border: #34ffb6;
+  --btn-approve-hover-bg: #34ffb6;
+  --main-text: #f8fafc;
+  --secondary-text: #cbd5e1;
+  --input-bg: #232347;
+  --input-border: #7dd3fc;
+  --input-placeholder: #a5b4fc;
+}
+
+body, html {
+  color: var(--main-text);
+  background: #181825;
 }
 
 /* ─── Config Warning Banner ─────────────────────────────────── */
@@ -48,14 +58,15 @@
 /* ─── Goal Card ─────────────────────────────────────────────── */
 .goal-card {
   background: var(--goal-card-bg);
-  border: 1px solid var(--goal-card-border);
+  border: 1.5px solid var(--goal-card-border);
   border-radius: var(--goal-card-radius);
-  padding: 1.25rem;
+  padding: 1.5rem 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
   transition: border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               background 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 16px 0 rgba(0,0,0,0.12);
 }
 
 .goal-card:hover {
@@ -64,15 +75,17 @@
 }
 
 .goal-card-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #f1f5f9;
-  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--main-text);
+  margin: 0 0 0.25rem 0;
+  letter-spacing: 0.01em;
 }
 
 .goal-card-meta {
-  font-size: 0.85rem;
-  color: #94a3b8;
+  font-size: 0.95rem;
+  color: var(--secondary-text);
+  font-weight: 500;
 }
 
 .goal-card-footer {
@@ -111,18 +124,20 @@
 .btn-approve {
   background: var(--btn-approve-bg);
   color: var(--btn-approve-color);
-  border: 1px solid var(--btn-approve-border);
+  border: 2px solid var(--btn-approve-border);
   border-radius: 8px;
-  padding: 0.4rem 0.85rem;
-  font-size: 0.8rem;
-  font-weight: 600;
+  padding: 0.6rem 1.1rem;
+  font-size: 1rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s ease;
-  min-height: 44px;
+  transition: background 0.2s ease, color 0.2s ease;
+  min-height: 48px;
+  box-shadow: 0 1px 8px 0 rgba(16,185,129,0.08);
 }
 
 .btn-approve:hover:not(:disabled) {
   background: var(--btn-approve-hover-bg);
+  color: #181825;
 }
 
 .btn-approve:disabled {
@@ -139,15 +154,15 @@
 
 .goal-input {
   width: 100%;
-  background: rgba(15, 15, 40, 0.6);
-  border: 1px solid rgba(120, 100, 255, 0.2);
+  background: var(--input-bg);
+  border: 1.5px solid var(--input-border);
   border-radius: 10px;
-  color: #f1f5f9;
-  font-size: 0.95rem;
-  padding: 0.75rem 1rem;
+  color: var(--main-text);
+  font-size: 1.05rem;
+  padding: 1rem 1.25rem;
   outline: none;
   transition: border-color 0.2s ease;
-  min-height: 44px;
+  min-height: 48px;
   box-sizing: border-box;
 }
 
@@ -156,7 +171,8 @@
 }
 
 .goal-input::placeholder {
-  color: #64748b;
+  color: var(--input-placeholder);
+  opacity: 1;
 }
 
 /* ─── Tx Status Banners ─────────────────────────────────────── */
